@@ -17,6 +17,11 @@ import (
 func initOpenAPIRoutes(root *gin.RouterGroup, urlPrefix string) {
 	// OpenAPI documentation using Scalar UI (带 Basic Auth 认证)
 	root.GET("/openapi/*any", func(c *gin.Context) {
+		// 禁用整个 OpenAPI 路由的缓存
+		c.Header("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
+		c.Header("Pragma", "no-cache")
+		c.Header("Expires", "0")
+
 		settingsSvc := services.NewSettingsService()
 		siteConfig := settingsSvc.GetSection(constant.SectionSite)
 		tokenJson := siteConfig[constant.KeyOpenapiToken]
@@ -72,9 +77,6 @@ func initOpenAPIRoutes(root *gin.RouterGroup, urlPrefix string) {
   </body>
 </html>`
 			c.Header("Content-Type", "text/html; charset=utf-8")
-			c.Header("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
-			c.Header("Pragma", "no-cache")
-			c.Header("Expires", "0")
 			c.Status(http.StatusOK)
 			c.Writer.Write([]byte(scalarHTML))
 			c.Abort()
