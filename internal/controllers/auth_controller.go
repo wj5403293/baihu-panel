@@ -168,13 +168,15 @@ func (ac *AuthController) Logout(c *gin.Context) {
 }
 
 func (ac *AuthController) GetCurrentUser(c *gin.Context) {
-	username, exists := c.Get("username")
-	if !exists {
-		utils.Unauthorized(c, "未登录")
+	userID := c.GetString("userID")
+	var user models.User
+	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		utils.Unauthorized(c, "会话无效")
 		return
 	}
 	utils.Success(c, gin.H{
-		"username": username,
+		"username": user.Username,
+		"role":     user.Role,
 	})
 }
 

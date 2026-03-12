@@ -3,6 +3,7 @@ package services
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -109,4 +110,30 @@ func (us *UserService) UpdatePassword(userID string, newPassword string) error {
 
 func (us *UserService) InvalidateUserTokens(userID string) error {
 	return database.DB.Model(&models.User{}).Where("id = ?", userID).Update("token_version", gorm.Expr("token_version + 1")).Error
+}
+
+func (us *UserService) UpdateAccount(userID string, newUsername string) error {
+	var user models.User
+	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		return err
+	}
+
+	updates := make(map[string]interface{})
+	if newUsername != "" && newUsername != user.Username {
+		// 检查用户名是否已存在
+		var count int64
+		database.DB.Model(&models.User{}).Where("username = ? AND id <> ?", newUsername, userID).Count(&count)
+		if count > 0 {
+			return fmt.Errorf("用户名 [%s] 已被占用", newUsername)
+		}
+		updates["username"] = newUsername
+		// 用户名变更，必须失效所有 Token，因为 Token 中包含 Username 且中间件会校验
+		updates["token_version"] = gorm.Expr("token_version + 1")
+	}
+
+	if len(updates) == 0 {
+		return nil
+	}
+
+	return database.DB.Model(&user).Updates(updates).Error
 }
