@@ -77,6 +77,7 @@ log "  - node: $(node --version 2>&1 | head -n 1 || echo "not found")"
 # 延迟获取 NODE_PATH，避免同步阻塞启动
 log "Checking npm..."
 log "  - npm: $(npm --version 2>&1 | head -n 1 || echo "not found")"
+
 export NODE_PATH=$(npm root -g 2>/dev/null || echo "")
 log "  - node_path: $NODE_PATH"
 

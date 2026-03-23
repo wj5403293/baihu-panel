@@ -38,7 +38,8 @@ func ParseRepoScriptsAndAddCron(es *ExecutorService, taskID string, logWriter io
 	}
 
 	var repoTask models.Task
-	if err := database.DB.Where("id = ?", taskID).First(&repoTask).Error; err != nil {
+	res := database.DB.Where("id = ?", taskID).Limit(1).Find(&repoTask)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return
 	}
 

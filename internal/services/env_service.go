@@ -60,7 +60,8 @@ func (es *EnvService) GetEnvVarsWithPagination(userID string, name string, page,
 
 func (es *EnvService) GetEnvVarByID(id string) *models.EnvironmentVariable {
 	var env models.EnvironmentVariable
-	if err := database.DB.Where("id = ?", id).First(&env).Error; err != nil {
+	res := database.DB.Where("id = ?", id).Limit(1).Find(&env)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return nil
 	}
 	return &env
@@ -68,7 +69,8 @@ func (es *EnvService) GetEnvVarByID(id string) *models.EnvironmentVariable {
 
 func (es *EnvService) UpdateEnvVar(id string, name, value, remark string, hidden, enabled bool) *models.EnvironmentVariable {
 	var env models.EnvironmentVariable
-	if err := database.DB.Where("id = ?", id).First(&env).Error; err != nil {
+	res := database.DB.Where("id = ?", id).Limit(1).Find(&env)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return nil
 	}
 	updates := map[string]interface{}{

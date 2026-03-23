@@ -271,7 +271,9 @@ func (s *MiseService) syncToDB(languages []MiseLanguage) {
 	for _, lang := range languages {
 		var model models.Language
 		// 以 plugin 和 version 作为联合唯一标识（业务逻辑上）
-		err := db.Where("plugin = ? AND version = ?", lang.Plugin, lang.Version).First(&model).Error
+		res := db.Where("plugin = ? AND version = ?", lang.Plugin, lang.Version).Limit(1).Find(&model)
+		err := res.Error
+		rowsAffected := res.RowsAffected
 
 		sourceStr := ""
 		if lang.Source.Path != "" {
@@ -289,8 +291,8 @@ func (s *MiseService) syncToDB(languages []MiseLanguage) {
 			}
 		}
 
-		if err != nil {
-			// 如果不存在，则创建
+			if err == nil && rowsAffected == 0 {
+				// 如果不存在，则创建
 			newLang := models.Language{
 				ID:          utils.GenerateID(),
 				Plugin:      lang.Plugin,

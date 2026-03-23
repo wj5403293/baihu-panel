@@ -15,7 +15,8 @@ func NewTaskService() *TaskService {
 
 func (ts *TaskService) GetTaskBySourceID(sourceID string) *models.Task {
 	var task models.Task
-	if err := database.DB.Where("source_id = ?", sourceID).First(&task).Error; err != nil {
+	res := database.DB.Where("source_id = ?", sourceID).Limit(1).Find(&task)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return nil
 	}
 	return &task
@@ -91,7 +92,8 @@ func (ts *TaskService) GetTasksWithPagination(page, pageSize int, name string, a
 
 func (ts *TaskService) GetTaskByID(id string) *models.Task {
 	var task models.Task
-	if err := database.DB.Where("id = ?", id).First(&task).Error; err != nil {
+	res := database.DB.Where("id = ?", id).Limit(1).Find(&task)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return nil
 	}
 	return &task
@@ -99,7 +101,8 @@ func (ts *TaskService) GetTaskByID(id string) *models.Task {
 
 func (ts *TaskService) UpdateTask(id string, name, command, schedule string, timeout int, workDir, cleanConfig, envs string, enabled bool, taskType, config string, agentID *string, languages []map[string]string, triggerType string, tags string, retryCount int, retryInterval int, randomRange int, sourceID string) *models.Task {
 	var task models.Task
-	if err := database.DB.Where("id = ?", id).First(&task).Error; err != nil {
+	res := database.DB.Where("id = ?", id).Limit(1).Find(&task)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return nil
 	}
 	task.Name = name

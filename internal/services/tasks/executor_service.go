@@ -614,7 +614,8 @@ func (es *ExecutorService) ExecuteTask(taskID string, extraEnvs []string) *execu
 // StopTaskExecution stops a running task execution by LogID
 func (es *ExecutorService) StopTaskExecution(logID string) error {
 	var taskLog models.TaskLog
-	if err := database.DB.Where("id = ?", logID).First(&taskLog).Error; err != nil {
+	res := database.DB.Where("id = ?", logID).Limit(1).Find(&taskLog)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return fmt.Errorf("日志不存在")
 	}
 
@@ -747,7 +748,8 @@ func (es *ExecutorService) CleanupRunningTasks() error {
 // CheckConcurrency 检查任务并发限制（只读检查）
 func (es *ExecutorService) CheckConcurrency(taskID string) error {
 	var task models.Task
-	if err := database.DB.Select("config, running_go").Where("id = ?", taskID).First(&task).Error; err != nil {
+	res := database.DB.Select("config, running_go").Where("id = ?", taskID).Limit(1).Find(&task)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return err
 	}
 	var goids []int64
@@ -773,7 +775,8 @@ func (es *ExecutorService) AddRunningGo(taskID string) (int64, error) {
 	for attempt := 0; attempt < 3; attempt++ {
 		lastErr = database.DB.Transaction(func(tx *gorm.DB) error {
 			var task models.Task
-			if err := tx.Where("id = ?", taskID).First(&task).Error; err != nil {
+			res := tx.Where("id = ?", taskID).Limit(1).Find(&task)
+			if res.Error != nil || res.RowsAffected == 0 {
 				return err
 			}
 			var goids []int64
@@ -814,7 +817,8 @@ func (es *ExecutorService) RemoveRunningGo(taskID string, goid int64) {
 	for attempt := 0; attempt < 3; attempt++ {
 		err := database.DB.Transaction(func(tx *gorm.DB) error {
 			var task models.Task
-			if err := tx.Where("id = ?", taskID).First(&task).Error; err != nil {
+			res := tx.Where("id = ?", taskID).Limit(1).Find(&task)
+			if res.Error != nil || res.RowsAffected == 0 {
 				return err
 			}
 			var goids []int64
@@ -844,7 +848,8 @@ func (es *ExecutorService) ExecuteRemoteForScheduler(task *models.Task, logID st
 
 	// 1. 检查 Agent 状态
 	var agent models.Agent
-	if err := database.DB.Where("id = ?", agentID).First(&agent).Error; err != nil {
+	res := database.DB.Where("id = ?", agentID).Limit(1).Find(&agent)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return nil, fmt.Errorf("Agent #%s 不存在", agentID)
 	}
 	if !agent.Enabled {

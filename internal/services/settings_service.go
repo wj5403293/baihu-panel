@@ -121,7 +121,8 @@ func (s *SettingsService) Get(section, key string) string {
 		return cache.GetSiteCache(key)
 	}
 	var setting models.Setting
-	if err := database.DB.Where("section = ? AND `key` = ?", section, key).First(&setting).Error; err != nil {
+	res := database.DB.Where("section = ? AND `key` = ?", section, key).Limit(1).Find(&setting)
+	if res.Error != nil || res.RowsAffected == 0 {
 		if def, ok := constant.DefaultSettings[section][key]; ok {
 			return def
 		}
@@ -133,7 +134,8 @@ func (s *SettingsService) Get(section, key string) string {
 // Set 设置单个值
 func (s *SettingsService) Set(section, key, value string) error {
 	var setting models.Setting
-	if database.DB.Where("section = ? AND `key` = ?", section, key).First(&setting).Error != nil {
+	res := database.DB.Where("section = ? AND `key` = ?", section, key).Limit(1).Find(&setting)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return database.DB.Create(&models.Setting{
 			ID:      utils.GenerateID(),
 			Section: section,

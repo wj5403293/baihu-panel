@@ -152,9 +152,9 @@ func (s *NotificationService) SaveBinding(binding *models.NotifyBinding) error {
 	if binding.ID == "" {
 		// 检查是否已经存在相同的绑定（避免重复点击导致多个记录）
 		var existing models.NotifyBinding
-		err := database.DB.Where("type = ? AND event = ? AND way_id = ? AND data_id = ?",
-			binding.Type, binding.Event, binding.WayID, binding.DataID).First(&existing).Error
-		if err == nil {
+		res := database.DB.Where("type = ? AND event = ? AND way_id = ? AND data_id = ?",
+			binding.Type, binding.Event, binding.WayID, binding.DataID).Limit(1).Find(&existing)
+		if res.Error == nil && res.RowsAffected > 0 {
 			// 如果已存在且未删除，直接返回（或者更新它）
 			*binding = existing
 			return nil
@@ -246,7 +246,8 @@ func (s *NotificationService) SendByChannelID(channelID string, msg *NotifyMessa
 	defer s.mu.RUnlock()
 
 	var notifyWay models.NotifyWay
-	if err := database.DB.Where("id = ?", channelID).First(&notifyWay).Error; err != nil {
+	res := database.DB.Where("id = ?", channelID).Limit(1).Find(&notifyWay)
+	if res.Error != nil || res.RowsAffected == 0 {
 		return &NotifyResult{Success: false, Error: "渠道不存在"}
 	}
 

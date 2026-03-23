@@ -65,7 +65,8 @@ func (sc *SettingsController) ChangePassword(c *gin.Context) {
 
 	userID := c.GetString("userID")
 	var user *models.User
-	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+	res := database.DB.Where("id = ?", userID).Limit(1).Find(&user)
+	if res.Error != nil || res.RowsAffected == 0 {
 		utils.NotFound(c, "用户不存在")
 		return
 	}
