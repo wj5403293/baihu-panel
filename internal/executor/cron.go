@@ -2,6 +2,8 @@ package executor
 
 import (
 	"math/rand"
+	"strings"
+	"fmt"
 	"sync"
 	"time"
 
@@ -61,6 +63,7 @@ func (m *CronManager) Stop() {
 	m.logger.Infof("[CronManager] 调度管理服务已停止")
 }
 
+
 // AddTask 添加或更新计划任务
 func (m *CronManager) AddTask(task CronTask) error {
 	m.mu.Lock()
@@ -83,7 +86,8 @@ func (m *CronManager) AddTask(task CronTask) error {
 	languages := task.GetLanguages()
 	useMise := task.UseMise()
 
-	entryID, err := m.cron.AddFunc(task.GetSchedule(), func() {
+	schedule := strings.TrimSpace(task.GetSchedule())
+	entryID, err := m.cron.AddFunc(schedule, func() {
 		defer func() {
 			if r := recover(); r != nil {
 				m.logger.Errorf("[CronManager] 任务 #%s 执行过程中发生 Panic: %v", taskID, r)
@@ -182,6 +186,19 @@ func (m *CronManager) triggerNextRunEvent(taskID string, req *ExecutionRequest) 
 
 // ValidateCron 校验 Cron 表达式
 func (m *CronManager) ValidateCron(expression string) error {
+	expression = strings.TrimSpace(expression)
+	if expression == "" {
+		return fmt.Errorf("cron 表达式不能为空")
+	}
+
+	// 如果不是以 @ 开头的描述符，检查位数
+	if !strings.HasPrefix(expression, "@") {
+		fields := strings.Fields(expression)
+		if len(fields) != 6 {
+			return fmt.Errorf("cron 表达式必须为 6 位 (秒 分 时 日 月 周)")
+		}
+	}
+
 	parser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 	_, err := parser.Parse(expression)
 	return err

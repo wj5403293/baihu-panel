@@ -62,12 +62,21 @@ const cronDescription = computed(() => {
   return getCronDescription(form.value.schedule, (navigator as any).language)
 })
 
+const isCronValid = computed(() => {
+  if (!form.value.schedule) return true
+  const s = form.value.schedule.trim()
+  if (s.startsWith('@')) return true
+  const fields = s.split(/\s+/).filter(Boolean)
+  return fields.length === 6
+})
+
 // 监听 concurrencyEnabled 的变化，同步到 concurrency
 watch(concurrencyEnabled, (val) => {
   concurrency.value = val ? 1 : 0
 })
 
 function onConcurrencyChange(val: boolean) {
+
   concurrencyEnabled.value = val
 }
 
@@ -426,8 +435,10 @@ async function save() {
     }
     emit('update:open', false)
     emit('saved')
-  } catch (error) {
-    toast.error('保存失败')
+  } catch (error: any) {
+    toast.error('保存失败', {
+      description: error.message || '未知错误'
+    })
   }
 }
 </script>
@@ -445,6 +456,7 @@ async function save() {
       </DialogHeader>
 
       <ScrollArea class="flex-1 min-h-0 px-6">
+
         <div class="space-y-8 py-4 pb-8">
           <!-- 基本信息 Section -->
           <section class="space-y-4">
@@ -657,7 +669,7 @@ async function save() {
                       <Label for="all-envs" class="text-[11px] font-medium cursor-pointer">使用全量环境变量</Label>
                     </div>
                     <Popover>
-                      <PopoverTrigger as-child>
+                      <PopoverTrigger asChild>
                         <Button variant="ghost" size="icon" class="h-6 w-6 opacity-40 hover:opacity-100 hover:text-primary transition-all">
                            <AlertCircle class="h-3.5 w-3.5" />
                         </Button>
@@ -749,14 +761,22 @@ async function save() {
                 <div class="grid grid-cols-1 sm:grid-cols-4 items-center gap-3">
                   <Label class="sm:text-right text-xs text-muted-foreground uppercase tracking-wider font-semibold">定时规则</Label>
                   <div class="sm:col-span-3">
-                    <Input v-model="form.schedule" placeholder="* * * * * *" class="h-9 font-mono text-[13px] bg-muted/30 border-muted-foreground/20 focus:ring-1 focus:ring-primary/50" />
-                    <div v-if="cronDescription" class="mt-2.5 p-2 rounded-lg bg-primary/5 border border-primary/10 text-[11px] text-primary font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                      <Zap class="h-3 w-3" />
+                    <Input v-model="form.schedule" placeholder="秒 分 时 日 月 周 (必须 6 位)" 
+                      :class="cn('h-9 bg-muted/20 border-muted-foreground/15 transition-all focus:ring-1 focus:ring-primary/40 focus:border-primary/40', form.schedule ? 'font-mono text-sm tracking-[0.1em] font-medium' : 'text-[11px] font-normal')" />
+                    
+                    <div v-if="form.schedule && !isCronValid" class="mt-2 text-[10px] text-destructive flex items-center gap-1.5 font-medium animate-in fade-in slide-in-from-top-1 duration-300">
+                      <AlertCircle class="h-3 w-3" /> 表达式位数错误: 必须为 6 位 (秒 分 时 日 月 周)
+                    </div>
+
+                    <div v-if="cronDescription" class="mt-2.5 p-2 px-3 rounded-xl bg-primary/5 border border-primary/10 text-[11px] text-primary/80 font-medium flex items-center gap-2.5 animate-in fade-in slide-in-from-top-1 duration-300 shadow-sm shadow-primary/5">
+                      <div class="p-1 rounded-full bg-primary/10">
+                        <Zap class="h-3 w-3 text-primary animate-pulse" />
+                      </div>
                       {{ cronDescription }}
                     </div>
                     <div class="mt-2.5 space-y-2">
                       <div class="flex items-center gap-1.5 text-[10px] text-muted-foreground/70 uppercase font-bold tracking-tighter">
-                        <Clock class="h-3 w-3" /> 格式指导: 秒 分 时 日 月 周
+                        <Clock class="h-3 w-3" /> 格式指导: 秒 分 时 日 月 周 (必须使用 6 位表达式)
                       </div>
                       <div class="flex flex-wrap gap-1.5">
                         <button v-for="preset in cronPresets" :key="preset.value"
