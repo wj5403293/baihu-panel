@@ -378,7 +378,7 @@ func (es *ExecutorService) HandleTaskRetry(task *models.Task, req *executor.Exec
 					WorkDir:   latestTask.WorkDir,
 					Envs:      newEnvs,
 					Timeout:   latestTask.Timeout,
-					Languages: latestTask.Languages,
+					Languages: []map[string]string(latestTask.Languages),
 					UseMise:   latestTask.UseMise(),
 					Type:      executor.TaskTypeManual,
 					Metadata: executor.ExecutionMetadata{
@@ -459,7 +459,7 @@ func (es *ExecutorService) ExecuteDispatcher(ctx context.Context, req *executor.
 		WorkDir:   req.WorkDir,
 		Envs:      req.Envs,
 		Timeout:   req.Timeout,
-		Languages: task.Languages,
+		Languages: []map[string]string(task.Languages),
 		UseMise:   req.UseMise, // 使用请求中的 UseMise 标志 (由调度器统一处理过)
 	}, stdout, stderr, hooks)
 }
@@ -596,7 +596,7 @@ func (es *ExecutorService) ExecuteTask(taskID string, extraEnvs []string) *execu
 		WorkDir:   task.WorkDir,
 		Envs:      envs,
 		Timeout:   task.Timeout,
-		Languages: task.Languages,
+		Languages: []map[string]string(task.Languages),
 		UseMise:   task.UseMise(),
 		Type:      executor.TaskTypeManual,
 	}
