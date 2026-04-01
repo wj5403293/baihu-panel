@@ -105,60 +105,94 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-muted/40">
-    <!-- Mobile Menu Overlay -->
-    <div v-if="mobileMenuOpen" class="fixed inset-0 bg-black/50 z-40 lg:hidden" @click="mobileMenuOpen = false" />
-
-    <!-- Sidebar -->
-    <aside :class="[
-      'fixed lg:static inset-y-0 z-50 w-44 2xl:w-60 border-r bg-background flex flex-col transition-all duration-300 ease-in-out',
-      mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-    ]">
-      <div class="h-14 flex items-center justify-center px-4 font-semibold text-lg border-b relative">
-        <span>{{ siteSettings.title }}</span>
-        <Button variant="ghost" size="icon" class="h-8 w-8 lg:hidden absolute right-2" @click="mobileMenuOpen = false">
-          <X class="h-4 w-4" />
-        </Button>
-      </div>
-      <nav class="flex-1 px-3 py-6 space-y-1 flex flex-col items-center">
-        <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" custom v-slot="{ navigate }">
-          <Button variant="ghost"
-            :class="['justify-start gap-3 h-9 px-3', isItemActive(item) && 'bg-accent text-accent-foreground']"
-            @click="handleNavClick(navigate)">
-            <component :is="item.icon" class="h-4 w-4" />
-            {{ item.label }}
+  <!-- Root Container: Handles the background and centering on 2K+ screens -->
+  <div class="h-screen w-full bg-slate-50/50 dark:bg-slate-950 flex items-center justify-center 2xl:p-8 3xl:p-12 transition-all duration-500 overflow-hidden">
+    
+    <!-- Application Card: The main floating surface -->
+    <div :style="mobileMenuOpen ? 'transform: scale(0.98); opacity: 0.9;' : ''"
+      class="flex h-full w-full bg-background relative transition-all duration-500 overflow-hidden
+             2xl:max-w-[1800px] 2xl:max-h-[92vh] 2xl:rounded-[2.5rem] 2xl:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.12)] 2xl:border 2xl:border-slate-200/60 dark:2xl:border-slate-800/40
+             3xl:max-w-[2200px] 3xl:max-h-[90vh]">
+      
+      <!-- Mobile Menu Overlay -->
+      <div v-if="mobileMenuOpen" class="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40 lg:hidden" @click="mobileMenuOpen = false" />
+  
+      <!-- Sidebar -->
+      <aside :class="[
+        'fixed lg:static inset-y-0 z-50 w-44 2xl:w-52 border-r bg-background flex flex-col transition-all duration-300 ease-in-out',
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      ]">
+        <div class="h-14 flex items-center justify-center px-4 font-bold text-lg border-b relative">
+          <span>{{ siteSettings.title }}</span>
+          <Button variant="ghost" size="icon" class="h-8 w-8 lg:hidden absolute right-2" @click="mobileMenuOpen = false">
+            <X class="h-4 w-4" />
           </Button>
-        </RouterLink>
-      </nav>
-      <div class="px-3 py-4 border-t flex justify-center">
-        <Button variant="ghost" class="justify-start gap-3 h-9 px-3 text-muted-foreground hover:text-foreground"
-          @click="logout">
-          <LogOut class="h-4 w-4" />
-          退出登录
-        </Button>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 overflow-auto w-full lg:w-auto min-w-0 relative flex flex-col items-center bg-gray-50/50 dark:bg-transparent">
-      <div class="w-full h-14 border-b bg-background flex items-center justify-between px-4 lg:px-6 2xl:px-10 shrink-0">
-        <div class="flex items-center gap-3 flex-1 min-w-0">
-          <Button variant="ghost" size="icon" class="h-8 w-8 lg:hidden shrink-0" @click="mobileMenuOpen = true">
-            <Menu class="h-5 w-5" />
+        </div>
+        <nav class="flex-1 px-3 py-6 space-y-1 flex flex-col items-center overflow-y-auto custom-scrollbar">
+          <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" custom v-slot="{ navigate }">
+            <Button variant="ghost"
+              :class="['justify-start gap-3 h-9 px-3 w-full', isItemActive(item) && 'bg-primary/5 text-primary font-semibold shadow-sm']"
+              @click="handleNavClick(navigate)">
+              <component :is="item.icon" class="h-3.5 w-3.5" />
+              <span class="text-[13px]">{{ item.label }}</span>
+            </Button>
+          </RouterLink>
+        </nav>
+        <div class="px-3 py-4 border-t flex justify-center">
+          <Button variant="ghost" class="justify-start gap-3 h-9 px-3 w-full text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+            @click="logout">
+            <LogOut class="h-3.5 w-3.5" />
+            <span class="text-[13px]">退出登录</span>
           </Button>
-          <span class="text-sm text-muted-foreground truncate" :title="sentence">
-            <span class="hidden sm:inline">{{ sentence }}</span>
-            <span class="sm:hidden">{{ sentenceContent }}</span>
-          </span>
         </div>
-        <div class="flex items-center gap-2">
-          <SystemNotice />
-          <ThemeToggle />
+      </aside>
+  
+      <!-- Main Content Area -->
+      <main class="flex-1 flex flex-col min-w-0 relative bg-white/5 dark:bg-slate-900/10">
+        <!-- Top Navigation Bar -->
+        <header class="h-14 border-b bg-background/80 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 shrink-0 sticky top-0 z-30">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <Button variant="ghost" size="icon" class="h-8 w-8 lg:hidden shrink-0 border bg-muted/20" @click="mobileMenuOpen = true">
+              <Menu class="h-4 w-4" />
+            </Button>
+            <span class="text-xs text-muted-foreground truncate italic opacity-80" :title="sentence">
+              <span class="hidden sm:inline">{{ sentence }}</span>
+              <span class="sm:hidden">{{ sentenceContent }}</span>
+            </span>
+          </div>
+          <div class="flex items-center gap-3">
+            <SystemNotice />
+            <ThemeToggle />
+          </div>
+        </header>
+  
+        <!-- Page View Container -->
+        <div class="flex-1 overflow-auto custom-scrollbar relative">
+          <div class="p-4 lg:p-6 2xl:p-10 mx-auto">
+            <RouterView />
+          </div>
         </div>
-      </div>
-      <div class="w-full max-w-[2000px] p-4 lg:p-6 2xl:p-12 flex-1">
-        <RouterView />
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+</style>
