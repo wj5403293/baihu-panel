@@ -66,7 +66,7 @@ const cronDescription = computed(() => {
 
 
 // 监听 concurrencyEnabled 的变化，同步到 concurrency
-watch(concurrencyEnabled, (val) => {
+watch(concurrencyEnabled, (val: boolean) => {
   concurrency.value = val ? 1 : 0
 })
 
@@ -89,13 +89,13 @@ function addTag() {
 
 function removeTag(tagToRemove: string) {
   const currentTags = form.value.tags ? form.value.tags.split(',').filter(Boolean) : []
-  form.value.tags = currentTags.filter(t => t !== tagToRemove).join(',')
+  form.value.tags = currentTags.filter((t: string) => t !== tagToRemove).join(',')
 }
 
 // 当前显示的工作目录（根据选择的执行位置）
 const currentWorkDir = computed({
   get: () => workDirCache.value[selectedAgentId.value] || '',
-  set: (val) => {
+  set: (val: string) => {
     workDirCache.value[selectedAgentId.value] = val
   }
 })
@@ -106,7 +106,7 @@ const cleanConfig = computed(() => {
 })
 
 const filteredEnvVars = computed(() => {
-  return allEnvVars.value.filter(env => {
+  return allEnvVars.value.filter((env: EnvVar) => {
     const matchSearch = !envSearchQuery.value || env.name.toLowerCase().includes(envSearchQuery.value.toLowerCase())
     const notSelected = !selectedEnvIds.value.includes(env.id)
     return matchSearch && notSelected
@@ -115,12 +115,12 @@ const filteredEnvVars = computed(() => {
 
 const selectedEnvs = computed(() => {
   return selectedEnvIds.value
-    .map(id => allEnvVars.value.find(e => e.id === id))
+    .map((id: string) => allEnvVars.value.find((e: EnvVar) => e.id === id))
     .filter((e): e is EnvVar => e !== undefined)
 })
 
 const onlineAgents = computed(() => {
-  return allAgents.value.filter(a => a.enabled)
+  return allAgents.value.filter((a: Agent) => a.enabled)
 })
 
 // 语言环境相关
@@ -137,13 +137,13 @@ const notificationConfigRef = ref<InstanceType<typeof TaskNotificationConfig> | 
 const filteredPlugins = computed(() => {
   if (!pluginSearch.value) return availablePlugins.value
   const s = pluginSearch.value.toLowerCase()
-  return availablePlugins.value.filter(p => p.toLowerCase().includes(s))
+  return availablePlugins.value.filter((p: string) => p.toLowerCase().includes(s))
 })
 
 function getFilteredVersions(versions: string[]) {
   if (!versionSearch.value) return versions
   const s = versionSearch.value.toLowerCase()
-  return versions.filter(v => v.toLowerCase().includes(s))
+  return versions.filter((v: string) => v.toLowerCase().includes(s))
 }
 
 async function fetchInstalledLangs() {
@@ -151,7 +151,7 @@ async function fetchInstalledLangs() {
   try {
     installedLangs.value = await api.mise.list()
     const plugins = new Set<string>()
-    installedLangs.value.forEach(l => plugins.add(l.plugin))
+    installedLangs.value.forEach((l: MiseLanguage) => plugins.add(l.plugin))
     availablePlugins.value = Array.from(plugins).sort()
   } catch (e) {
     console.error('Fetch installed langs failed', e)
@@ -203,9 +203,9 @@ function getLangIcon(plugin: string) {
 function updateAvailableVersions(lang: { name: string; version: string; availableVersions: string[] }) {
   if (lang.name) {
     lang.availableVersions = installedLangs.value
-      .filter(l => l.plugin === lang.name)
-      .map(l => l.version)
-      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
+      .filter((l: MiseLanguage) => l.plugin === lang.name)
+      .map((l: MiseLanguage) => l.version)
+      .sort((a: string, b: string) => b.localeCompare(a, undefined, { numeric: true }))
   } else {
     lang.availableVersions = []
   }
@@ -227,7 +227,7 @@ function updateLangName(index: number, name: string) {
   updateAvailableVersions(lang)
 }
 
-watch(() => props.open, async (val) => {
+watch(() => props.open, async (val: boolean) => {
   if (val) {
     form.value = {
       retry_count: props.task?.retry_count ?? 0,
@@ -286,7 +286,7 @@ watch(() => props.open, async (val) => {
     }
     // 解析环境变量
     if (props.task?.envs) {
-      selectedEnvIds.value = props.task.envs.split(',').map(s => s.trim()).filter(Boolean)
+      selectedEnvIds.value = props.task.envs.split(',').map((s: string) => s.trim()).filter(Boolean)
     } else {
       selectedEnvIds.value = []
     }
@@ -320,7 +320,7 @@ watch(() => props.open, async (val) => {
     if (selectedAgentId.value === 'local') {
       await fetchInstalledLangs()
       // 更新所有语言的可用版本
-      selectedLangs.value.forEach(lang => {
+      selectedLangs.value.forEach((lang: { name: string; version: string; availableVersions: string[] }) => {
         updateAvailableVersions(lang)
       })
     }
@@ -349,7 +349,7 @@ function addEnv(id: string) {
 }
 
 function removeEnv(id: string) {
-  selectedEnvIds.value = selectedEnvIds.value.filter(envId => envId !== id)
+  selectedEnvIds.value = selectedEnvIds.value.filter((envId: string) => envId !== id)
 }
 
 function normalizeLocalWorkDirForDisplay(workDir?: string | null): string {
@@ -389,7 +389,7 @@ async function save() {
     form.value.agent_id = selectedAgentId.value === 'local' ? null : selectedAgentId.value
 
     // 保存语言环境配置
-    form.value.languages = selectedLangs.value.map(l => ({
+    form.value.languages = selectedLangs.value.map((l: { name: string; version: string }) => ({
       name: l.name,
       version: l.version
     }))
@@ -596,14 +596,14 @@ async function save() {
                   <Label class="sm:text-right text-xs text-foreground/70 uppercase tracking-wider font-bold">失败策略</Label>
                   <div class="sm:col-span-3 flex items-center gap-3">
                     <span class="text-[11px] text-muted-foreground">重试</span>
-                    <Input :model-value="form.retry_count" @update:model-value="v => form.retry_count = Number(v)" type="number" :min="0" class="w-20 h-9 bg-muted/20 border-muted-foreground/15 text-center font-bold" />
+                    <Input :model-value="form.retry_count" @update:model-value="(v: string | number) => form.retry_count = Number(v)" type="number" :min="0" class="w-20 h-9 bg-muted/20 border-muted-foreground/15 text-center font-bold" />
                     <span class="text-[11px] text-muted-foreground">次</span>
                   </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-4 items-center gap-3">
                   <Label class="sm:text-right text-xs text-foreground/70 uppercase tracking-wider font-bold">运行策略</Label>
                   <div class="sm:col-span-3 flex items-center gap-3">
-                    <Input :model-value="form.timeout" @update:model-value="v => form.timeout = Number(v)" type="number" :min="0" class="w-20 h-9 bg-muted/20 border-muted-foreground/15 text-center font-bold" />
+                    <Input :model-value="form.timeout" @update:model-value="(v: string | number) => form.timeout = Number(v)" type="number" :min="0" class="w-20 h-9 bg-muted/20 border-muted-foreground/15 text-center font-bold" />
                     <span class="text-[11px] text-muted-foreground">分钟超时</span>
                   </div>
                 </div>

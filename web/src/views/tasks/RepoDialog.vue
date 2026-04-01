@@ -92,13 +92,13 @@ const versionSearch = ref('')
 const filteredPlugins = computed(() => {
   if (!pluginSearch.value) return availablePlugins.value
   const s = pluginSearch.value.toLowerCase()
-  return availablePlugins.value.filter(p => p.toLowerCase().includes(s))
+  return availablePlugins.value.filter((p: string) => p.toLowerCase().includes(s))
 })
 
 function getFilteredVersions(versions: string[]) {
   if (!versionSearch.value) return versions
   const s = versionSearch.value.toLowerCase()
-  return versions.filter(v => v.toLowerCase().includes(s))
+  return versions.filter((v: string) => v.toLowerCase().includes(s))
 }
 
 async function fetchInstalledLangs() {
@@ -106,7 +106,7 @@ async function fetchInstalledLangs() {
   try {
     installedLangs.value = await api.mise.list()
     const plugins = new Set<string>()
-    installedLangs.value.forEach(l => plugins.add(l.plugin))
+    installedLangs.value.forEach((l: MiseLanguage) => plugins.add(l.plugin))
     availablePlugins.value = Array.from(plugins).sort()
   } catch (e) {
     console.error('Fetch installed langs failed', e)
@@ -158,9 +158,9 @@ function getLangIcon(plugin: string) {
 function updateAvailableVersions(lang: { name: string; version: string; availableVersions: string[] }) {
   if (lang.name) {
     lang.availableVersions = installedLangs.value
-      .filter(l => l.plugin === lang.name)
-      .map(l => l.version)
-      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
+      .filter((l: MiseLanguage) => l.plugin === lang.name)
+      .map((l: MiseLanguage) => l.version)
+      .sort((a: string, b: string) => b.localeCompare(a, undefined, { numeric: true }))
   } else {
     lang.availableVersions = []
   }
@@ -257,7 +257,7 @@ function addTag() {
 
 function removeTag(tagToRemove: string) {
   const currentTags = form.value.tags ? form.value.tags.split(',').filter(Boolean) : []
-  form.value.tags = currentTags.filter(t => t !== tagToRemove).join(',')
+  form.value.tags = currentTags.filter((t: string) => t !== tagToRemove).join(',')
 }
 
 
@@ -284,7 +284,7 @@ const cleanConfig = computed(() => {
   return JSON.stringify({ type: cleanType.value, keep: cleanKeep.value })
 })
 
-watch(() => props.open, async (val) => {
+watch(() => props.open, async (val: boolean) => {
   if (val) {
     form.value = {
       retry_count: props.task?.retry_count ?? 0,
@@ -360,7 +360,7 @@ watch(() => props.open, async (val) => {
     await loadAgents()
     if (selectedAgentId.value === 'local') {
       await fetchInstalledLangs()
-      selectedLangs.value.forEach(lang => {
+      selectedLangs.value.forEach((lang: { name: string; version: string; availableVersions: string[] }) => {
         updateAvailableVersions(lang)
       })
     }
@@ -395,7 +395,7 @@ async function save() {
     }
 
     // 保存语言环境
-    form.value.languages = selectedLangs.value.map(l => ({
+    form.value.languages = selectedLangs.value.map((l: { name: string; version: string }) => ({
       name: l.name,
       version: l.version
     }))
@@ -485,7 +485,7 @@ async function save() {
                 <div class="grid grid-cols-1 sm:grid-cols-4 items-center gap-3">
                   <Label class="sm:text-right text-xs text-foreground/70 uppercase tracking-wider font-bold">源类型</Label>
                   <div class="sm:col-span-3">
-                    <Select :model-value="repoConfig.source_type" @update:model-value="(v) => repoConfig.source_type = String(v || 'git')">
+                    <Select :model-value="repoConfig.source_type" @update:model-value="(v: any) => repoConfig.source_type = String(v || 'git')">
                       <SelectTrigger class="h-9 bg-muted/30 border-muted-foreground/20">
                         <SelectValue />
                       </SelectTrigger>
@@ -559,7 +559,7 @@ async function save() {
                 <div class="grid grid-cols-1 sm:grid-cols-4 items-center gap-3">
                   <Label class="sm:text-right text-xs text-foreground/70 uppercase tracking-wider font-medium">代理配置</Label>
                   <div class="sm:col-span-3">
-                    <Select :model-value="repoConfig.proxy" @update:model-value="(v) => repoConfig.proxy = String(v || 'none')">
+                    <Select :model-value="repoConfig.proxy" @update:model-value="(v: any) => repoConfig.proxy = String(v || 'none')">
                       <SelectTrigger class="h-9 bg-muted/30 border-muted-foreground/20">
                         <SelectValue />
                       </SelectTrigger>
@@ -764,7 +764,7 @@ async function save() {
                   <Label class="sm:text-right text-xs text-foreground/70 uppercase tracking-wider font-bold">随机延迟</Label>
                   <div class="sm:col-span-3 flex items-center gap-4">
                     <div class="flex items-center gap-2">
-                      <Input :model-value="form.random_range" @update:model-value="v => form.random_range = Number(v || 0)" type="number" :min="0" class="w-20 h-9 bg-muted/30 text-center" />
+                      <Input :model-value="form.random_range" @update:model-value="(v: string | number) => form.random_range = Number(v || 0)" type="number" :min="0" class="w-20 h-9 bg-muted/30 text-center" />
                       <span class="text-xs font-semibold text-muted-foreground">秒</span>
                     </div>
                     <div class="flex-1 text-[11px] text-muted-foreground leading-snug p-2 rounded-lg bg-blue-500/5 border border-blue-500/10 italic">
@@ -783,7 +783,7 @@ async function save() {
                           <Zap :class="cn('h-3.5 w-3.5', autoAddCron ? 'text-primary' : 'text-muted-foreground')" /> 
                           自动添加任务
                         </div>
-                        <Switch :model-value="autoAddCron" @update:model-value="v => autoAddCron = v" />
+                        <Switch :model-value="autoAddCron" @update:model-value="(v: boolean) => autoAddCron = v" />
                       </div>
                       <p class="text-[11px] text-muted-foreground leading-relaxed">
                         {{ autoAddCron ? '同步完成后将尝试自动分析脚本并注册定时任务。' : '仅拉取脚本，不自动注册成面板任务。' }}
@@ -792,11 +792,11 @@ async function save() {
 
                     <div class="flex items-center gap-4">
                       <div class="flex items-center gap-2">
-                         <Input :model-value="form.timeout" @update:model-value="v => form.timeout = Number(v || 0)" type="number" :min="0" class="w-20 h-9 bg-muted/30 text-center" />
+                         <Input :model-value="form.timeout" @update:model-value="(v: string | number) => form.timeout = Number(v || 0)" type="number" :min="0" class="w-20 h-9 bg-muted/30 text-center" />
                          <span class="text-[11px] font-semibold text-muted-foreground">分钟超时</span>
                       </div>
                       <div class="flex items-center gap-2 pl-4 border-l">
-                        <Select :model-value="cleanType" @update:model-value="(v) => cleanType = String(v || 'none')">
+                        <Select :model-value="cleanType" @update:model-value="(v: any) => cleanType = String(v || 'none')">
                           <SelectTrigger class="w-28 h-9 text-xs bg-muted/10">
                             <SelectValue />
                           </SelectTrigger>

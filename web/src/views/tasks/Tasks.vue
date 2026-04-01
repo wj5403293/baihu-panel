@@ -42,7 +42,7 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null
 // 创建 agent 映射表
 const agentMap = computed(() => {
   const map: Record<string, Agent> = {}
-  agents.value.forEach(a => { map[a.id] = a })
+  agents.value.forEach((a: Agent) => { map[a.id] = a })
   return map
 })
 
@@ -314,7 +314,7 @@ onMounted(async () => {
 })
 
 // 监听路由参数变化
-watch(() => route.query.agent_id, (newVal) => {
+watch(() => route.query.agent_id, (newVal: any) => {
   filterAgentId.value = newVal ? String(newVal) : null
   currentPage.value = 1
   loadTasks()
@@ -346,7 +346,7 @@ watch(() => route.query.agent_id, (newVal) => {
         <div class="flex items-center gap-3 w-full sm:w-auto">
           <!-- 移动端类型切换 -->
           <div class="md:hidden flex-1 shrink-0">
-             <Select v-model="filterType" @update:model-value="handleTypeChange">
+             <Select v-model="filterType" @update:model-value="(_v: any) => handleTypeChange()">
                <SelectTrigger class="h-9 w-full text-sm">
                  <SelectValue />
                </SelectTrigger>
@@ -382,7 +382,7 @@ watch(() => route.query.agent_id, (newVal) => {
           </div>
 
           <!-- 桌面端类型切换移到后面 -->
-          <Tabs :model-value="filterType" @update:model-value="v => { filterType = String(v); handleTypeChange() }" class="shrink-0 hidden md:block">
+          <Tabs :model-value="filterType" @update:model-value="(v: string | number) => { filterType = String(v); handleTypeChange() }" class="shrink-0 hidden md:block">
              <TabsList class="h-9 p-1 bg-muted/30 border">
                 <TabsTrigger :value="TASK_TYPE.NORMAL" class="px-4 h-7 text-[13px]">定时任务</TabsTrigger>
                 <TabsTrigger :value="TASK_TYPE.REPO" class="px-4 h-7 text-[13px]">仓库同步</TabsTrigger>
