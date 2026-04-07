@@ -5,6 +5,11 @@
 @import "@fontsource/inter/500.css";
 @import "@fontsource/inter/600.css";
 @import "@fontsource/inter/700.css";
+@import "@fontsource/geist-sans/400.css";
+@import "@fontsource/geist-sans/500.css";
+@import "@fontsource/geist-sans/600.css";
+@import "@fontsource/geist-sans/700.css";
+@import "@fontsource/geist-mono/400.css";
 @import "@fontsource/jetbrains-mono/400.css";
 @import "@fontsource/jetbrains-mono/500.css";
 
@@ -213,20 +218,25 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: "Geist Sans", "Inter", system-ui, -apple-system, sans-serif;
     font-size: 14px;
-    line-height: 1.5;
-    letter-spacing: -0.01em;
+    line-height: 1.5rem;
+    letter-spacing: -0.02em;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tighter font-semibold;
   }
 
   .font-code,
   .font-mono,
   code,
   pre {
-    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-family: "Geist Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
   }
 }
 
@@ -238,28 +248,30 @@
   body {
     font-size: 15px;
     font-weight: 450;
+    line-height: 1.5;
     letter-spacing: 0;
-    /* 移动端关闭 subpixel antialiasing，字体更实更清晰 */
+    /* 移动端使用默认平滑，保持字体“厚度”与清晰度 */
     -webkit-font-smoothing: auto;
     -moz-osx-font-smoothing: auto;
   }
 
-  /* 标题类字体在小屏下同步增重 */
+  /* 标题类在小屏下显著加重，增加力量感 */
   h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: -0.01em;
   }
 
-  /* 正文段落、描述类文字增重 */
+  /* 正文与描述类文字同步增重，避免纤细感，提升识别度 */
   p,
   span:not([class*="icon"]),
   label,
   [class*="description"],
-  [class*="muted"] {
-    font-weight: 420;
+  [class*="muted"],
+  .text-muted-foreground {
+    font-weight: 430;
   }
 
-  /* 小号字在移动端专门增重，与 Windows 小字优化区分开 */
+  /* 小号字专门增重，模拟截图中免责声明的稳重感 */
   .text-xs {
     font-size: 0.8rem;
     font-weight: 500;
@@ -268,19 +280,19 @@
 
   .text-sm {
     font-size: 0.9rem;
-    font-weight: 450;
-    letter-spacing: 0;
+    font-weight: 480;
   }
 
-  /* 按钮文字增重，更易点击辨识 */
+  /* 交互性元素与按钮清晰有力 */
   button,
-  [role="button"] {
-    font-weight: 500;
+  [role="button"],
+  .font-medium {
+    font-weight: 600;
   }
 
-  /* 表格单元格 */
+  /* 表格单元格保持厚实 */
   td, th {
-    font-weight: 430;
+    font-weight: 450;
   }
 }
 
