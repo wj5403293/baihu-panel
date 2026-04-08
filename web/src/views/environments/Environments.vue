@@ -2,7 +2,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import BaihuDialog from '@/components/ui/BaihuDialog.vue'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -457,62 +457,49 @@ onBeforeUnmount(() => {
       </DialogContent>
     </Dialog>
 
-    <AlertDialog v-model:open="showDeleteDialog">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认删除</AlertDialogTitle>
-          <AlertDialogDescription>
-            <div v-if="associatedTasks.length > 0" class="space-y-4 pt-1">
-              <div class="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <AlertTriangle class="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                <div class="space-y-1">
-                  <p class="text-sm font-bold text-destructive">{{ activeTab === ENV_TYPE.SECRET ? '机密' : '环境变量' }}正在使用中</p>
-                  <p class="text-xs text-muted-foreground leading-relaxed">
-                    该{{ activeTab === ENV_TYPE.SECRET ? '机密' : '变量' }}已被以下任务引用，直接删除可能导致任务运行失败。建议先移除引用或选择“强制删除”。
-                  </p>
-                </div>
-              </div>
+    <BaihuDialog v-model:open="showDeleteDialog" :title="associatedTasks.length > 0 ? '风险删除确认' : '确认删除'">
+      <div v-if="associatedTasks.length > 0" class="space-y-4">
+        <div class="flex items-start gap-4 p-4 rounded-xl bg-destructive/5 border border-destructive/10">
+          <AlertTriangle class="h-5 w-5 text-destructive shrink-0" />
+          <div class="space-y-1">
+            <p class="text-sm font-bold text-destructive">{{ activeTab === ENV_TYPE.SECRET ? '机密' : '环境变量' }}正在使用中</p>
+            <p class="text-[13px] text-muted-foreground/80 leading-relaxed">
+              该{{ activeTab === ENV_TYPE.SECRET ? '机密' : '变量' }}已被以下任务引用，直接删除可能导致任务运行失败。建议先移除引用或选择“强制删除”。
+            </p>
+          </div>
+        </div>
 
-              <div class="space-y-2">
-                <div class="flex items-center justify-between px-1">
-                  <p class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">关联任务 ({{
-                    associatedTasks.length }})</p>
-                </div>
-                <div class="bg-muted/30 rounded-lg p-1.5 max-h-40 overflow-y-auto space-y-1 border border-border/40">
-                  <div v-for="task in associatedTasks" :key="task.id"
-                    class="text-xs flex items-center justify-between bg-background/50 p-2 rounded-md border border-border/50 hover:bg-background transition-colors">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <Terminal class="h-3 w-3 text-primary/70" />
-                      <span class="font-medium truncate">{{ task.name }}</span>
-                    </div>
-                    <code
-                      class="text-[10px] text-muted-foreground/70 font-mono bg-muted/50 px-1.5 py-0.5 rounded">{{ task.id }}</code>
-                  </div>
-                </div>
+        <div class="space-y-2">
+          <p class="text-[11px] font-bold text-muted-foreground uppercase tracking-widest px-1">关联任务 ({{ associatedTasks.length }})</p>
+          <div class="bg-muted/30 rounded-xl p-2 max-h-48 overflow-y-auto space-y-1.5 border border-border/40">
+            <div v-for="task in associatedTasks" :key="task.id"
+              class="text-xs flex items-center justify-between bg-card p-2.5 rounded-lg border border-border/50 hover:border-primary/30 transition-all">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <Terminal class="h-3.5 w-3.5 text-primary/70" />
+                <span class="font-medium truncate">{{ task.name }}</span>
               </div>
-
-              <div class="p-3 rounded-lg bg-secondary/30 border border-border/20">
-                <p class="text-xs text-muted-foreground leading-relaxed">
-                  <span class="font-bold text-foreground/80">提示：</span>选择强制删除将自动解除以上任务对该{{ activeTab === 'secret' ? '机密' : '变量' }}的绑定并执行物理删除。
-                </p>
-              </div>
+              <code class="text-[10px] text-muted-foreground/70 font-mono bg-muted/50 px-1.5 py-0.5 rounded">{{ task.id }}</code>
             </div>
-            <p v-else class="py-2">确定要删除此{{ activeTab === ENV_TYPE.SECRET ? '机密' : '环境变量' }}吗？此操作无法撤销，请谨慎操作。</p>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel :disabled="isDeleting">取消</AlertDialogCancel>
-          <Button v-if="associatedTasks.length > 0" variant="destructive" @click="deleteEnv(true)"
-            :disabled="isDeleting">
-            <template v-if="isDeleting">删除中...</template>
-            <template v-else>强制删除</template>
-          </Button>
-          <Button v-else variant="destructive" @click="deleteEnv(false)" :disabled="isDeleting">
-            <template v-if="isDeleting">删除中...</template>
-            <template v-else>确认删除</template>
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-muted/20 border border-border/10">
+          <p class="text-xs text-muted-foreground leading-relaxed italic">
+            提示：选择强制删除将自动解除以上任务对该{{ activeTab === 'secret' ? '机密' : '变量' }}的绑定并执行物理删除。
+          </p>
+        </div>
+      </div>
+      <p v-else class="text-[15px] leading-relaxed text-muted-foreground">确定要删除此{{ activeTab === ENV_TYPE.SECRET ? '机密' : '环境变量' }}吗？此操作无法撤销，请谨慎操作。</p>
+
+      <template #footer>
+        <Button variant="ghost" :disabled="isDeleting" @click="showDeleteDialog = false">取消</Button>
+        <Button v-if="associatedTasks.length > 0" variant="destructive" class="shadow-lg shadow-destructive/20" @click="deleteEnv(true)" :disabled="isDeleting">
+          {{ isDeleting ? '删除中...' : '确认强制删除' }}
+        </Button>
+        <Button v-else variant="destructive" class="shadow-lg shadow-destructive/20" @click="deleteEnv(false)" :disabled="isDeleting">
+          {{ isDeleting ? '删除中...' : '确认删除' }}
+        </Button>
+      </template>
+    </BaihuDialog>
   </div>
 </template>

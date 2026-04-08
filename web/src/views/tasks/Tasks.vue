@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { Button } from '@/components/ui/button'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import BaihuDialog from '@/components/ui/BaihuDialog.vue'
 import { Input } from '@/components/ui/input'
 import Pagination from '@/components/Pagination.vue'
 import TaskDialog from './TaskDialog.vue'
@@ -347,15 +347,15 @@ watch(() => route.query.agent_id, (newVal: any) => {
         <p class="text-muted-foreground text-sm">管理和调度自动化执行任务</p>
       </div>
 
-      <div class="flex flex-col sm:flex-row flex-wrap gap-3 w-full lg:w-auto lg:ml-auto lg:justify-end">
+      <div class="flex flex-row items-center flex-wrap gap-2 w-full lg:w-auto lg:ml-auto lg:justify-end">
         <!-- 搜索与标签 -->
-        <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:flex-1 lg:flex-none lg:w-auto text-sm">
-          <div class="relative w-full sm:flex-1 lg:max-w-[240px] group">
+        <div class="flex flex-row items-center gap-2 flex-1 sm:flex-1 lg:flex-none lg:w-auto text-sm">
+          <div class="relative flex-1 sm:flex-1 lg:max-w-[240px] group">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input v-model="filterName" placeholder="搜索任务..." class="h-9 pl-9 w-full bg-muted/20 border-muted-foreground/10 focus:bg-background"
               @input="handleSearch" />
           </div>
-          <div class="relative w-full sm:flex-1 lg:max-w-[180px] group">
+          <div class="relative flex-1 sm:flex-1 lg:max-w-[180px] group">
             <Tag class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input v-model="filterTags" placeholder="搜索标签..." class="h-9 pl-9 w-full bg-muted/20 border-muted-foreground/10 focus:bg-background"
               @input="handleSearch" />
@@ -612,37 +612,29 @@ watch(() => route.query.agent_id, (newVal: any) => {
       :empty-title="logEmptyTitle"
       :empty-description="logEmptyDesc" />
 
+
     <!-- 删除确认 (批量) -->
-    <AlertDialog v-model:open="showBatchDeleteDialog">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认批量删除</AlertDialogTitle>
-          <AlertDialogDescription>
-            将会删除当前所有过滤条件下匹配的 <b>{{ total }}</b> 个任务。操作不可撤销。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction class="bg-destructive text-white hover:bg-destructive/90" @click="batchDeleteTasks">
-            确认删除
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <BaihuDialog v-model:open="showBatchDeleteDialog" title="确认批量删除">
+      <div class="text-sm text-muted-foreground leading-relaxed">
+        将会删除当前所有过滤条件下匹配的 <b class="text-foreground text-lg px-1">{{ total }}</b> 个任务。
+        <p class="mt-2 text-destructive font-medium">⚠️ 操作不可撤销，请谨慎操作。</p>
+      </div>
+      <template #footer>
+        <Button variant="ghost" @click="showBatchDeleteDialog = false">取消</Button>
+        <Button variant="destructive" class="shadow-lg shadow-destructive/20" @click="batchDeleteTasks">确认批量删除</Button>
+      </template>
+    </BaihuDialog>
 
     <!-- 删除确认 (单个) -->
-    <AlertDialog v-model:open="showDeleteDialog">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认删除</AlertDialogTitle>
-          <AlertDialogDescription>确定要删除此任务吗？此操作无法撤销。</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction class="bg-destructive text-white hover:bg-destructive/90" @click="deleteTask">删除
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <BaihuDialog v-model:open="showDeleteDialog" title="确认删除任务">
+      <div class="text-sm text-muted-foreground leading-relaxed">
+        确定要删除任务 <b class="text-foreground">{{ tasks.find(t => t.id === deleteTaskId)?.name }}</b> 吗？
+        <p class="mt-2 text-destructive font-medium">⚠️ 此操作无法撤销。</p>
+      </div>
+      <template #footer>
+        <Button variant="ghost" @click="showDeleteDialog = false">取消</Button>
+        <Button variant="destructive" class="shadow-lg shadow-destructive/20" @click="deleteTask">确认删除</Button>
+      </template>
+    </BaihuDialog>
   </div>
 </template>

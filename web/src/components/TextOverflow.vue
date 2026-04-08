@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import BaihuDialog from '@/components/ui/BaihuDialog.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -22,19 +22,16 @@ function handleClick() {
 </script>
 
 <template>
-  <span v-bind="$attrs" class="truncate block cursor-pointer hover:text-primary" :title="text || '-'"
-    @click="handleClick">
+  <span v-bind="$attrs" class="truncate block cursor-pointer hover:text-primary transition-colors" :title="text || '-'"
+    @click.stop="handleClick">
     {{ text || '-' }}
   </span>
 
-  <Dialog v-model:open="showDialog">
-    <DialogContent class="sm:max-w-[600px]">
-      <DialogHeader>
-        <DialogTitle>{{ title }}</DialogTitle>
-      </DialogHeader>
-      <div class="max-h-[400px] overflow-y-auto">
-        <pre class="text-sm whitespace-pre-wrap break-all font-mono bg-muted p-3 rounded-lg">{{ text }}</pre>
-      </div>
-    </DialogContent>
-  </Dialog>
+  <BaihuDialog v-model:open="showDialog" :title="title">
+    <div class="max-h-[60vh] overflow-y-auto custom-scrollbar">
+      <p class="text-[15px] leading-relaxed text-foreground/80 break-all whitespace-pre-wrap font-sans">
+        {{ text }}
+      </p>
+    </div>
+  </BaihuDialog>
 </template>

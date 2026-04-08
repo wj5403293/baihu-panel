@@ -12,27 +12,12 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import Pagination from '@/components/Pagination.vue'
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog'
+import BaihuDialog from '@/components/ui/BaihuDialog.vue'
 import { toast } from 'vue-sonner'
 import { format } from 'date-fns'
 import {
-    RefreshCw, Trash2, Search, Info, AlertTriangle, AlertCircle
+    RefreshCw, Search, Info, AlertTriangle, AlertCircle
 } from 'lucide-vue-next'
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { useSiteSettings } from '@/composables/useSiteSettings'
 
 const { pageSize } = useSiteSettings()
@@ -193,27 +178,15 @@ function onDialogClose(open: boolean) {
                     <RefreshCw class="h-4 w-4" :class="{ 'animate-spin': loading }" />
                 </Button>
             </div>
-            <AlertDialog :open="showClearConfirm" @update:open="showClearConfirm = $event">
-                <Button variant="outline"
-                    class="h-9 px-4 shrink-0 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20 w-full sm:w-auto"
-                    @click="showClearConfirm = true">
-                    <Trash2 class="h-4 w-4 mr-2" /> <span>清空记录</span>
-                </Button>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>确认清空所有系统事件？</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            此操作将永久清空当前分类下的所有系统事件记录，操作后无法恢复。确认要继续吗？
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>取消</AlertDialogCancel>
-                        <AlertDialogAction @click="handleClear" variant="destructive">
-                            确认清空
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <BaihuDialog v-model:open="showClearConfirm" title="清空系统事件确认">
+                <div class="text-sm text-muted-foreground leading-relaxed">
+                    此操作将永久清空当前分类下的所有系统事件记录，操作后无法恢复。确认要继续吗？
+                </div>
+                <template #footer>
+                    <Button variant="ghost" @click="showClearConfirm = false">取消</Button>
+                    <Button variant="destructive" class="shadow-lg shadow-destructive/20" @click="handleClear">确认清空</Button>
+                </template>
+            </BaihuDialog>
         </div>
 
         <div class="rounded-lg border bg-card overflow-hidden">
@@ -302,65 +275,40 @@ function onDialogClose(open: boolean) {
             <Pagination :total="total" :page="filters.page" @update:page="handlePageChange" />
         </div>
 
-        <Dialog v-model:open="detailDialogProps.open" @update:open="onDialogClose">
-            <DialogContent class="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-                <DialogHeader class="px-6 py-4 border-b bg-muted/20">
-                    <div class="flex items-center justify-between pr-8">
-                        <DialogTitle>事件详情</DialogTitle>
-                        <Badge variant="outline" :class="[
-                            'px-2 py-0.5 text-[10px] font-bold rounded-md border shadow-sm',
-                            selectedLog ? getLevelBadgeClass(selectedLog.level) : ''
-                        ]">
-                            <div class="flex items-center gap-1 uppercase tracking-tighter">
-                                <component :is="getLevelIcon(selectedLog?.level || 'info')" class="h-3 w-3" />
-                                <span>{{ selectedLog?.level || 'INFO' }}</span>
-                            </div>
-                        </Badge>
-                    </div>
-                </DialogHeader>
+        <BaihuDialog v-model:open="detailDialogProps.open" :title="detailDialogProps.title" @update:open="onDialogClose">
+            <template #description>
+                <div class="flex items-center gap-2">
+                    <Badge v-if="selectedLog" variant="outline" :class="[
+                        'px-2 py-0.5 text-[10px] font-bold rounded-md border shadow-sm',
+                        getLevelBadgeClass(selectedLog.level)
+                    ]">
+                        <div class="flex items-center gap-1 uppercase tracking-tighter">
+                            <component :is="getLevelIcon(selectedLog.level)" class="h-3 w-3" />
+                            <span>{{ selectedLog.level }}</span>
+                        </div>
+                    </Badge>
+                    <span class="text-[10px] text-muted-foreground font-mono">{{ selectedLog ? formatDate(selectedLog.created_at) : '-' }}</span>
+                </div>
+            </template>
 
-                <div class="flex-1 overflow-y-auto">
-                    <div class="px-6 py-4 border-b space-y-3 bg-card">
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-muted-foreground font-medium">标题</span>
-                            <span class="font-bold text-foreground">{{ detailDialogProps.title }}</span>
+            <div class="space-y-6">
+                <div class="space-y-4">
+                    <div class="p-4 rounded-xl bg-muted/20 border border-border/10 space-y-2">
+                        <p class="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">事件内容</p>
+                        <div v-if="detailDialogProps.content" class="text-sm leading-relaxed text-foreground/80 break-all whitespace-pre-wrap">
+                            {{ detailDialogProps.content }}
                         </div>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-muted-foreground font-medium">发生时间</span>
-                            <span class="font-mono text-xs text-muted-foreground">{{ selectedLog ?
-                                formatDate(selectedLog.created_at) : '-' }}</span>
-                        </div>
+                        <div v-else class="text-sm text-muted-foreground italic">无内容</div>
                     </div>
 
-                    <div class="flex flex-col min-h-0 bg-muted/5">
-                        <div
-                            class="px-6 py-2.5 text-[10px] font-bold text-muted-foreground border-b bg-muted/10 uppercase tracking-widest">
-                            内容详情
+                    <div v-if="detailDialogProps.error" class="p-4 rounded-xl bg-destructive/5 border border-destructive/10 space-y-2">
+                        <p class="text-[10px] uppercase tracking-widest text-destructive font-bold">错误堆栈/信息</p>
+                        <div class="text-sm leading-relaxed text-destructive/90 break-all whitespace-pre-wrap font-mono bg-destructive/5 p-3 rounded-lg border border-destructive/10">
+                            {{ detailDialogProps.error }}
                         </div>
-                        <div class="p-6">
-                            <div v-if="detailDialogProps.content"
-                                class="text-sm text-foreground bg-muted/20 p-5 rounded-xl border border-border/50 whitespace-pre-wrap break-all leading-relaxed shadow-sm">
-                                {{ detailDialogProps.content }}
-                            </div>
-                            <div v-else class="text-sm text-muted-foreground italic py-2">无内容</div>
-                        </div>
-
-                        <template v-if="detailDialogProps.error">
-                            <div
-                                class="px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest border-y bg-muted/10 text-muted-foreground border-border/60">
-                                错误信息
-                            </div>
-                            <div class="p-6">
-                                <div v-if="detailDialogProps.error"
-                                    class="text-sm p-5 rounded-xl border whitespace-pre-wrap break-all leading-relaxed shadow-sm bg-muted/20 border-border/60 text-foreground">
-                                    {{ detailDialogProps.error }}
-                                </div>
-                                <div v-else class="text-sm text-muted-foreground italic py-2">无错误信息</div>
-                            </div>
-                        </template>
                     </div>
                 </div>
-            </DialogContent>
-        </Dialog>
+            </div>
+        </BaihuDialog>
     </div>
 </template>

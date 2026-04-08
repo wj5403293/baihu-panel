@@ -17,6 +17,7 @@ import { api, type MiseLanguage } from '@/api'
 import { toast } from 'vue-sonner'
 import XTerminal from '@/components/XTerminal.vue'
 import { cn } from '@/lib/utils'
+import BaihuDialog from '@/components/ui/BaihuDialog.vue'
 
 const SUPPORTED_DEPS_LANGS = [
     'python', 'node', 'ruby', 'go', 'rust', 'bun', 'php',
@@ -35,6 +36,13 @@ const searchQuery = ref('')
 const errorMsg = ref('')
 const syncing = ref(false)
 const showSyncConfirm = ref(false)
+const showDetailDialog = ref(false)
+const selectedLang = ref<DisplayLanguage | null>(null)
+
+function viewDetail(lang: DisplayLanguage) {
+    selectedLang.value = lang
+    showDetailDialog.value = true
+}
 
 const showInstallDialog = ref(false)
 const newLangPlugin = ref('')
@@ -338,22 +346,22 @@ onMounted(() => {
                 <p class="text-muted-foreground text-sm mt-0.5">管理编程语言及相关包依赖(Mise)</p>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full md:w-auto">
-                <Button @click="openInstallDialog" class="w-full sm:w-auto h-9">
-                    <Plus class="h-4 w-4 mr-2" /> 新增语言
+            <div class="flex flex-row items-center gap-2 shrink-0 w-full md:w-auto overflow-x-auto pb-1 sm:pb-0">
+                <Button @click="openInstallDialog" class="flex-1 sm:flex-none h-9 text-sm px-2 sm:px-4">
+                    <Plus class="h-3.5 w-3.5 sm:mr-2" /> <span class="whitespace-nowrap">新增语言</span>
                 </Button>
-                <!-- 这里使用 Tabs 内部的 TabsList，所以外部需要包裹 Tabs -->
-                <Tabs v-model="activeTab" class="w-full sm:w-auto">
-                    <TabsList class="grid w-full sm:w-64 grid-cols-2 h-9">
-                        <TabsTrigger value="runtimes">安装列表</TabsTrigger>
-                        <TabsTrigger value="envs">镜像加速</TabsTrigger>
+                <Tabs v-model="activeTab" class="flex-1 sm:w-auto">
+                    <TabsList class="grid w-full sm:w-60 grid-cols-2 h-9">
+                        <TabsTrigger value="runtimes" class="text-sm px-1 sm:px-3">安装列表</TabsTrigger>
+                        <TabsTrigger value="envs" class="text-sm px-1 sm:px-3">镜像加速</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </div>
         </div>
 
         <!-- 贴士栏：全宽 Banner 增加视觉重心 -->
-        <div class="flex items-center gap-2.5 text-[13px] text-amber-600 dark:text-amber-500 bg-amber-500/10 px-4 py-2.5 rounded-lg border border-amber-500/20 leading-relaxed shadow-sm select-none">
+        <div
+            class="flex items-center gap-2.5 text-[13px] text-amber-600 dark:text-amber-500 bg-amber-500/10 px-4 py-2.5 rounded-lg border border-amber-500/20 leading-relaxed shadow-sm select-none">
             <AlertCircle class="h-4 w-4 shrink-0" />
             <span>
                 <b class="font-bold">设为默认</b>：将选定版本设为系统全局默认 (mise use -g)，生效后所有未通过高级配置指定特定环境的任务将默认调用此环境。
@@ -371,21 +379,23 @@ onMounted(() => {
                 <!-- 列表部分 -->
                 <div class="rounded-lg border bg-card overflow-hidden">
                     <div
-                        class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 border-b bg-muted/30 gap-3">
-                        <div class="relative w-full sm:w-64">
-                            <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input v-model="searchQuery" placeholder="搜索语言或版本..." class="h-9 pl-8 text-sm" />
+                        class="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b bg-muted/30 gap-2 sm:gap-4">
+                        <div class="relative flex-1 max-w-sm">
+                            <Search
+                                class="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                            <Input v-model="searchQuery" placeholder="搜索语言或版本..."
+                                class="h-8 sm:h-9 pl-8 text-xs sm:text-sm bg-background/50 focus:bg-background transition-all" />
                         </div>
-                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                            <Button variant="outline" class="h-9 px-3 text-sm flex-1 sm:flex-none"
+                        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                            <Button variant="outline" class="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm shadow-sm"
                                 @click="showSyncConfirm = true" :disabled="syncing || loading">
-                                <RefreshCw class="h-4 w-4 sm:mr-2" :class="{ 'animate-spin': syncing }" />
-                                <span class="hidden sm:inline">更新本地环境</span>
+                                <RefreshCw class="h-3.5 w-3.5 sm:mr-2" :class="{ 'animate-spin': syncing }" />
+                                <span class="hidden sm:inline">更新环境</span>
                                 <span class="sm:hidden">同步</span>
                             </Button>
-                            <Button variant="outline" size="icon" class="h-9 w-9 shrink-0" @click="loadLanguages"
-                                :disabled="loading">
-                                <RefreshCw class="h-4 w-4" :class="{ 'animate-spin': loading }" />
+                            <Button variant="outline" size="icon" class="h-8 w-8 sm:h-9 sm:w-9 shrink-0 shadow-sm"
+                                @click="loadLanguages" :disabled="loading">
+                                <RefreshCw class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="{ 'animate-spin': loading }" />
                             </Button>
                         </div>
                     </div>
@@ -401,64 +411,75 @@ onMounted(() => {
                             {{ searchQuery ? '未找到匹配的语言' : '未发现已安装的语言' }}
                         </div>
                         <template v-else>
-                            <div v-for="lang in filteredLanguages" :key="lang.plugin + lang.version"
-                                class="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-4 hover:bg-muted/50 transition-colors gap-4 relative">
-                                <div class="flex items-center gap-4 min-w-0 pr-10 sm:pr-0">
+                            <div v-for="(lang, index) in filteredLanguages" :key="lang.plugin + lang.version"
+                                class="flex flex-row items-center px-2 sm:px-4 py-2.5 sm:py-3 hover:bg-muted/5 transition-colors gap-2 sm:gap-4 relative group border-l-2 border-transparent hover:border-primary/40">
+                                <div class="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+                                    <div class="flex items-center justify-center w-6 sm:w-8 shrink-0">
+                                        <span
+                                            class="text-xs font-mono text-muted-foreground tabular-nums">#{{
+                                            filteredLanguages.length - index }}</span>
+                                    </div>
                                     <div
-                                        class="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary uppercase overflow-hidden shrink-0">
+                                        class="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary uppercase overflow-hidden shrink-0 border border-primary/10 shadow-sm ml-1 sm:ml-0">
                                         <template v-if="getLangIcon(lang.plugin)">
-                                            <div class="w-full h-full bg-white/80 p-2 flex items-center justify-center">
+                                            <div
+                                                class="w-full h-full bg-white/90 p-1.5 flex items-center justify-center">
                                                 <img :src="getLangIcon(lang.plugin)" :alt="lang.plugin"
                                                     class="w-full h-full object-contain" />
                                             </div>
                                         </template>
                                         <template v-else>
-                                            {{ lang.plugin.length > 2 ? lang.plugin.substring(0, 2) : lang.plugin }}
+                                            <span class="text-xs">{{ lang.plugin.length > 2 ?
+                                                lang.plugin.substring(0, 2) : lang.plugin }}</span>
                                         </template>
                                     </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-bold capitalize truncate">{{ lang.plugin }}</span>
-                                            <Badge variant="outline" class="font-mono whitespace-nowrap">{{ lang.version }}
-                                            </Badge>
+                                    <div
+                                        class="flex flex-col lg:flex-row lg:items-center gap-0.5 lg:gap-4 flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 min-w-[120px] shrink-0">
+                                            <span class="font-bold capitalize truncate text-[13px] sm:text-sm">{{
+                                                lang.plugin }}</span>
+                                            <Badge variant="outline"
+                                                class="font-mono text-[10px] h-4 px-1 bg-background/50">{{ lang.version
+                                                }}</Badge>
                                             <Badge v-if="lang.isGlobal" variant="secondary"
-                                                class="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 text-[10px] h-5 px-1.5 font-normal">
+                                                class="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 text-[10px] h-4 px-1.5 font-normal">
                                                 默认
                                             </Badge>
                                         </div>
-                                        <div class="text-xs text-muted-foreground mt-1 space-y-0.5">
-                                            <div class="font-mono opacity-60 truncate" :title="lang.source">来源: {{ lang.source
-                                                }}
-                                            </div>
-                                            <div v-if="lang.installed_at" class="opacity-50">
-                                                添加日期: {{ lang.installed_at }}
-                                            </div>
+                                        <div class="hidden lg:block w-px h-3 bg-border/50 shrink-0" />
+                                        <div class="text-xs text-muted-foreground truncate opacity-60 hover:opacity-100 hover:text-primary transition-all cursor-help"
+                                            @click="viewDetail(lang)">
+                                            <span class="hidden md:inline mr-1 opacity-60">来源:</span>
+                                            <span class="font-mono truncate" :title="lang.source">{{ lang.source
+                                                }}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:ml-auto w-full sm:w-auto">
-                                    <Button v-if="SUPPORTED_DEPS_LANGS.includes(lang.plugin)" variant="outline" size="sm"
-                                        class="whitespace-nowrap w-full sm:w-auto"
-                                        @click="$router.push(`/dependencies?language=${lang.plugin}&version=${lang.version}`)">
-                                        依赖管理
-                                    </Button>
-                                    <Badge v-else variant="secondary"
-                                        class="h-9 opacity-60 flex justify-center whitespace-nowrap sm:w-auto">
-                                        不支持管理
-                                    </Badge>
-                                    <Button variant="outline" size="sm" class="whitespace-nowrap w-full sm:w-auto"
-                                        @click="handleVerify(lang)">
-                                        环境验证
-                                    </Button>
-                                    <Button variant="outline" size="sm"
-                                        :class="cn('whitespace-nowrap w-full sm:w-auto col-span-2 sm:col-span-1', lang.isGlobal && 'text-amber-600 border-amber-500/50 bg-amber-500/5 hover:bg-amber-500/10')"
-                                        @click="toggleDefault(lang)">
-                                        {{ lang.isGlobal ? '取消默认设置' : '设为默认版本' }}
-                                    </Button>
+
+                                <div class="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto">
+                                    <div
+                                        class="flex items-center gap-1 bg-muted/20 p-0.5 rounded-lg border border-border/40">
+                                        <Button v-if="SUPPORTED_DEPS_LANGS.includes(lang.plugin)" variant="ghost"
+                                            size="sm"
+                                            class="h-7 px-1.5 sm:px-2 text-xs font-semibold whitespace-nowrap hover:bg-background hover:shadow-sm"
+                                            @click="$router.push(`/dependencies?language=${lang.plugin}&version=${lang.version}`)">
+                                            依赖
+                                        </Button>
+                                        <Button variant="ghost" size="sm"
+                                            class="h-7 px-1.5 sm:px-2 text-xs font-semibold whitespace-nowrap hover:bg-background hover:shadow-sm"
+                                            @click="handleVerify(lang)">
+                                            验证
+                                        </Button>
+                                        <Button variant="ghost" size="sm"
+                                            :class="cn('h-7 px-1.5 sm:px-2 text-xs font-semibold whitespace-nowrap hover:bg-background hover:shadow-sm', lang.isGlobal ? 'text-amber-600 bg-amber-500/10' : '')"
+                                            @click="toggleDefault(lang)">
+                                            默认
+                                        </Button>
+                                    </div>
                                     <Button variant="ghost" size="icon"
-                                        class="text-destructive h-9 w-9 shrink-0 absolute top-4 right-4 sm:relative sm:top-0 sm:right-0" @click="confirmDelete(lang)"
-                                        title="卸载">
-                                        <Trash2 class="h-4 w-4" />
+                                        class="h-7.5 w-7.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all opacity-40 group-hover:opacity-100"
+                                        @click="confirmDelete(lang)" title="卸载">
+                                        <Trash2 class="h-3.5 w-3.5" />
                                     </Button>
                                 </div>
                             </div>
@@ -483,25 +504,25 @@ onMounted(() => {
 
                     <!-- 常用预设网格 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div v-for="preset in ENV_PRESETS" :key="preset.label"
-                            :class="cn(
-                                'relative p-4 rounded-xl border transition-all group overflow-hidden',
-                                globalEnvs[preset.key] ? 'bg-primary/5 border-primary shadow-sm' : 'bg-muted/30 hover:border-primary/50 cursor-pointer'
-                            )" @click="applyPreset({ key: preset.key, value: globalEnvs[preset.key] || preset.value })">
-                            
+                        <div v-for="preset in ENV_PRESETS" :key="preset.label" :class="cn(
+                            'relative p-4 rounded-xl border transition-all group overflow-hidden',
+                            globalEnvs[preset.key] ? 'bg-primary/5 border-primary shadow-sm' : 'bg-muted/30 hover:border-primary/50 cursor-pointer'
+                        )"
+                            @click="applyPreset({ key: preset.key, value: globalEnvs[preset.key] || preset.value })">
+
                             <div class="flex items-start justify-between mb-2">
                                 <div class="font-semibold text-sm">{{ preset.label }}</div>
-                                <div v-if="globalEnvs[preset.key]" 
-                                     class="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                                <div v-if="globalEnvs[preset.key]"
+                                    class="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
                                     <Check class="h-3 w-3" />
                                 </div>
                             </div>
-                            
+
                             <div class="text-[10px] font-mono mb-3">
                                 <div class="text-muted-foreground truncate">{{ preset.key }}</div>
-                                <div v-if="globalEnvs[preset.key]" 
-                                     class="mt-1 text-primary/80 font-medium truncate bg-primary/5 px-1.5 py-0.5 rounded-sm border border-primary/10" 
-                                     :title="globalEnvs[preset.key] as string">
+                                <div v-if="globalEnvs[preset.key]"
+                                    class="mt-1 text-primary/80 font-medium truncate bg-primary/5 px-1.5 py-0.5 rounded-sm border border-primary/10"
+                                    :title="globalEnvs[preset.key] as string">
                                     {{ globalEnvs[preset.key] }}
                                 </div>
                             </div>
@@ -510,12 +531,13 @@ onMounted(() => {
                                 <span v-if="globalEnvs[preset.key]" class="text-[10px] font-medium text-primary">
                                     已启用 (点击修改)
                                 </span>
-                                <span v-else class="text-[10px] font-medium text-muted-foreground group-hover:text-primary transition-colors flex items-center">
-                                    立即启用 <ArrowRight class="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
+                                <span v-else
+                                    class="text-[10px] font-medium text-muted-foreground group-hover:text-primary transition-colors flex items-center">
+                                    立即启用
+                                    <ArrowRight class="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
                                 </span>
 
-                                <Button v-if="globalEnvs[preset.key]" 
-                                    variant="ghost" size="icon" 
+                                <Button v-if="globalEnvs[preset.key]" variant="ghost" size="icon"
                                     class="h-6 w-6 text-destructive hover:bg-destructive/10"
                                     @click.stop="handleUnsetEnv(preset.key)">
                                     <Trash2 class="h-3.5 w-3.5" />
@@ -583,7 +605,7 @@ onMounted(() => {
                                                         class="absolute -right-2 -top-1 h-3 w-3 text-primary bg-background rounded-full border shadow-sm" />
                                                 </div>
                                                 <span :class="{ 'font-bold text-primary': newLangPlugin === p }">{{ p
-                                                    }}</span>
+                                                }}</span>
                                             </button>
                                         </template>
                                     </div>
@@ -617,22 +639,24 @@ onMounted(() => {
                                 </div>
                                 <ScrollArea class="h-64">
                                     <div class="p-1">
-                                        <div v-if="loadingVersions" class="flex items-center justify-center py-6">
-                                            <Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
+                                        <div class="p-1">
+                                            <div v-if="loadingVersions" class="flex items-center justify-center py-6">
+                                                <Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
+                                            </div>
+                                            <div v-else-if="filteredVersions.length === 0"
+                                                class="py-6 text-center text-xs text-muted-foreground">
+                                                未找到匹配版本
+                                            </div>
+                                            <template v-else>
+                                                <button v-for="v in filteredVersions" :key="v"
+                                                    @click="() => { newLangVersion = v; openVersionPopover = false }"
+                                                    class="w-full flex items-center px-2 py-1.5 text-sm rounded-sm hover:bg-muted text-left transition-colors">
+                                                    <Check
+                                                        :class="cn('mr-2 h-3.5 w-3.5', newLangVersion === v ? 'opacity-100' : 'opacity-0')" />
+                                                    {{ v }}
+                                                </button>
+                                            </template>
                                         </div>
-                                        <div v-else-if="filteredVersions.length === 0"
-                                            class="py-6 text-center text-xs text-muted-foreground">
-                                            未找到匹配版本
-                                        </div>
-                                        <template v-else>
-                                            <button v-for="v in filteredVersions" :key="v"
-                                                @click="() => { newLangVersion = v; openVersionPopover = false }"
-                                                class="w-full flex items-center px-2 py-1.5 text-sm rounded-sm hover:bg-muted text-left transition-colors">
-                                                <Check
-                                                    :class="cn('mr-2 h-3.5 w-3.5', newLangVersion === v ? 'opacity-100' : 'opacity-0')" />
-                                                {{ v }}
-                                            </button>
-                                        </template>
                                     </div>
                                 </ScrollArea>
                             </PopoverContent>
@@ -720,5 +744,50 @@ onMounted(() => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <!-- 语言详情弹窗 -->
+        <BaihuDialog v-model:open="showDetailDialog" title="运行环境详情" icon="Info">
+            <template v-if="selectedLang">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-3 rounded-lg bg-muted/30 border border-border/40">
+                        <div
+                            class="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary uppercase overflow-hidden shrink-0 border border-primary/10">
+                            <template v-if="getLangIcon(selectedLang.plugin)">
+                                <div class="w-full h-full bg-white/90 p-2.5">
+                                    <img :src="getLangIcon(selectedLang.plugin)" class="w-full h-full object-contain" />
+                                </div>
+                            </template>
+                            <template v-else>
+                                <span class="text-lg">{{ selectedLang.plugin.substring(0, 2) }}</span>
+                            </template>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-lg capitalize">{{ selectedLang.plugin }}</span>
+                                <Badge variant="outline" class="font-mono text-xs">{{ selectedLang.version }}</Badge>
+                            </div>
+                            <div class="text-xs text-muted-foreground mt-1">
+                                {{ selectedLang.isGlobal ? '系统全局默认版本' : '普通已安装版本' }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="space-y-1.5">
+                            <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider px-1">
+                                完整安装路径</div>
+                            <div
+                                class="p-3 bg-muted/50 rounded-lg border border-border/40 break-all text-xs font-mono leading-relaxed select-all">
+                                {{ selectedLang.source }}
+                            </div>
+                        </div>
+                        <div v-if="selectedLang.installed_at" class="flex flex-row items-center justify-between px-1">
+                            <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider">安装日期</div>
+                            <div class="text-xs font-mono text-muted-foreground">{{ selectedLang.installed_at }}</div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </BaihuDialog>
     </div>
 </template>

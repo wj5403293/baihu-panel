@@ -258,26 +258,26 @@ onMounted(async () => {
     <div class="mt-4">
       <div class="rounded-lg border bg-card overflow-x-auto">
         <!-- 工具栏 -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 py-3 border-b bg-muted/10">
-          <div class="flex items-center gap-2">
-            <Badge variant="secondary">{{ filteredDeps.length }} 个包</Badge>
+        <div class="flex items-center justify-between gap-3 px-3 sm:px-4 py-2 sm:py-3 border-b bg-muted/10">
+          <div class="flex items-center gap-2 shrink-0">
+            <Badge variant="secondary" class="h-6 sm:h-7 px-2 text-[11px] sm:text-xs bg-primary/10 text-primary border-primary/20">{{ filteredDeps.length }} 个包</Badge>
           </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <div class="relative flex-1 sm:flex-none">
-              <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input v-model="searchQuery" placeholder="搜索包名..." class="h-9 pl-8 w-full sm:w-40 md:w-48 text-sm" />
+          <div class="flex items-center gap-2 flex-1 justify-end">
+            <div class="relative flex-1 max-w-[200px]">
+              <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <Input v-model="searchQuery" placeholder="搜索包名..." class="h-8 sm:h-9 pl-8 w-full text-[11px] sm:text-sm bg-background/50 focus:bg-background transition-all" />
             </div>
-            <div class="flex items-center gap-2">
-              <Button variant="outline" size="icon" class="h-9 w-9 shrink-0" @click="loadDeps" :disabled="loading">
-                <RefreshCw class="h-4 w-4" :class="{ 'animate-spin': loading }" />
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <Button variant="outline" size="icon" class="h-8 w-8 sm:h-9 sm:w-9 shrink-0 shadow-sm" @click="loadDeps" :disabled="loading">
+                <RefreshCw class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="{ 'animate-spin': loading }" />
               </Button>
-              <Button variant="outline" size="sm" class="h-9 shrink-0" @click="reinstallAll"
+              <Button variant="outline" size="sm" class="h-8 sm:h-9 px-2 sm:px-3 text-[11px] sm:text-xs shrink-0 shadow-sm" @click="reinstallAll"
                 :disabled="reinstallingAll || filteredDeps.length === 0">
-                <RotateCw class="h-4 w-4 sm:mr-1.5" :class="{ 'animate-spin': reinstallingAll }" /> <span
+                <RotateCw class="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" :class="{ 'animate-spin': reinstallingAll }" /> <span
                   class="hidden sm:inline">全部重装</span>
               </Button>
-              <Button size="sm" class="h-9 shrink-0" @click="openInstallDialog">
-                <Download class="h-4 w-4 sm:mr-1.5" /> <span class="hidden sm:inline">安装</span>
+              <Button size="sm" class="h-8 sm:h-9 px-2 sm:px-3 text-[11px] sm:text-xs shrink-0 shadow-sm" @click="openInstallDialog">
+                <Download class="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" /> <span class="hidden sm:inline">安装包</span>
               </Button>
             </div>
           </div>
@@ -285,11 +285,12 @@ onMounted(async () => {
 
         <!-- 表头 -->
         <div
-          class="flex items-center gap-4 px-4 py-2 border-b bg-muted/20 text-sm text-muted-foreground font-medium min-w-[400px]">
+          class="flex items-center gap-4 px-4 h-10 border-b bg-muted/20 text-xs text-muted-foreground font-bold uppercase tracking-wider min-w-[400px]">
+          <span class="w-12 shrink-0 pl-1">序号</span>
           <span class="flex-1">包名</span>
-          <span class="w-32">版本</span>
-          <span class="w-48 hidden md:block">备注</span>
-          <span class="w-32 text-center">操作</span>
+          <span class="w-24 shrink-0 px-2">版本</span>
+          <span class="w-48 hidden md:block shrink-0 px-2 font-medium">备注说明</span>
+          <span class="w-32 text-center shrink-0">操作</span>
         </div>
 
         <!-- 列表 -->
@@ -302,29 +303,30 @@ onMounted(async () => {
             <Package class="h-8 w-8 mx-auto mb-2 opacity-50" />
             {{ searchQuery ? '无匹配结果' : '暂无依赖包' }}
           </div>
-          <div v-else v-for="dep in filteredDeps" :key="dep.id"
-            class="flex items-center gap-4 px-4 py-2 hover:bg-muted/30 transition-colors">
-            <span class="flex-1 font-mono text-sm truncate">
+          <div v-else v-for="(dep, index) in filteredDeps" :key="dep.id"
+            class="flex items-center gap-4 px-4 h-10 hover:bg-muted/30 transition-colors group">
+            <div class="w-12 shrink-0 text-[11px] text-muted-foreground tabular-nums">#{{ filteredDeps.length - index }}</div>
+            <span class="flex-1 font-mono text-[13px] truncate font-medium">
               <TextOverflow :text="dep.name" title="包名" />
             </span>
-            <span class="w-32 text-sm text-muted-foreground">{{ dep.version || '-' }}</span>
-            <span class="w-48 text-sm text-muted-foreground truncate hidden md:block">
+            <span class="w-24 shrink-0 px-2 text-[12px] text-muted-foreground font-mono">{{ dep.version || '-' }}</span>
+            <span class="w-48 text-[12px] text-muted-foreground truncate hidden md:block shrink-0 px-2">
               <TextOverflow :text="dep.remark || '-'" title="备注" />
             </span>
-            <span class="w-32 flex justify-center gap-1">
+            <span class="w-32 flex justify-center gap-1 shrink-0 opacity-80 group-hover:opacity-100">
               <Button v-if="dep.log || dep.id" variant="ghost" size="icon"
                 class="h-7 w-7 text-blue-500 hover:text-blue-600 hover:bg-blue-50/10" @click="showLog(dep)"
                 title="查看安装日志">
-                <FileText class="h-4 w-4" />
+                <FileText class="h-3.5 w-3.5" />
               </Button>
               <Button variant="ghost" size="icon"
                 class="h-7 w-7 text-amber-500 hover:text-amber-600 hover:bg-amber-50/10" @click="reinstallPackage(dep)"
                 :disabled="reinstalling === dep.id" title="重新安装">
-                <RotateCw class="h-4 w-4" :class="{ 'animate-spin': reinstalling === dep.id }" />
+                <RotateCw class="h-3.5 w-3.5" :class="{ 'animate-spin': reinstalling === dep.id }" />
               </Button>
               <Button variant="ghost" size="icon" class="h-7 w-7 text-destructive hover:bg-destructive/10"
                 @click="confirmDelete(dep)" title="卸载并删除记录">
-                <Trash2 class="h-4 w-4" />
+                <Trash2 class="h-3.5 w-3.5" />
               </Button>
             </span>
           </div>

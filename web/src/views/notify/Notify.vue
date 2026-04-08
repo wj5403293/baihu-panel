@@ -1,16 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import BaihuDialog from '@/components/ui/BaihuDialog.vue'
 import { api, type NotifyChannel, type ChannelType, type EventType, type NotifyBinding, type Task } from '@/api'
 import { toast } from 'vue-sonner'
 import ChannelList from './components/ChannelList.vue'
@@ -363,19 +355,14 @@ onMounted(() => {
       @save="saveChannel" />
 
     <!-- 删除确认 -->
-    <AlertDialog :open="showDeleteConfirm" @update:open="showDeleteConfirm = $event">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认删除</AlertDialogTitle>
-          <AlertDialogDescription>
-            删除后将无法恢复，同时会取消该渠道的所有事件绑定。确定要删除吗？
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction @click="deleteChannel">确认删除</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <BaihuDialog v-model:open="showDeleteConfirm" title="确认删除通知渠道?">
+      <div class="text-[15px] leading-relaxed text-muted-foreground">
+        删除后将无法恢复，同时会取消该渠道的所有事件绑定。确定要删除吗？
+      </div>
+      <template #footer>
+        <Button variant="ghost" @click="showDeleteConfirm = false">取消</Button>
+        <Button variant="destructive" class="shadow-lg shadow-destructive/20" @click="deleteChannel">确认删除</Button>
+      </template>
+    </BaihuDialog>
   </div>
 </template>

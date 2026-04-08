@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import BaihuDialog from '@/components/ui/BaihuDialog.vue'
 import { RefreshCw, FolderPlus, FilePlus, Save } from 'lucide-vue-next'
 import { api, type FileNode } from '@/api'
 import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
@@ -380,31 +380,29 @@ onMounted(loadTree)
       </DialogContent>
     </Dialog>
 
-    <AlertDialog v-model:open="showDeleteDialog">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle class="text-sm">确认删除</AlertDialogTitle>
-          <AlertDialogDescription class="text-xs">确定要删除 {{ deletePath }} 吗？此操作无法撤销。</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel class="h-7 text-xs">取消</AlertDialogCancel>
-          <AlertDialogAction class="h-7 text-xs bg-destructive text-white hover:bg-destructive/90"
-            @click="handleDelete">删除</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <!-- 删除确认 -->
+    <BaihuDialog v-model:open="showDeleteDialog" title="确认删除文件?">
+      <div class="space-y-3">
+        <p class="text-[15px] leading-relaxed text-muted-foreground">确定要删除以下脚本吗？此操作无法撤销。</p>
+        <div class="bg-muted/30 p-3 rounded-lg border border-border/40 font-mono text-[11px] break-all text-destructive/80">
+          {{ deletePath }}
+        </div>
+      </div>
+      <template #footer>
+        <Button variant="ghost" @click="showDeleteDialog = false">取消</Button>
+        <Button variant="destructive" class="shadow-lg shadow-destructive/20" @click="handleDelete">确认删除</Button>
+      </template>
+    </BaihuDialog>
 
-    <AlertDialog v-model:open="showUnsavedDialog">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle class="text-sm">未保存的更改</AlertDialogTitle>
-          <AlertDialogDescription class="text-xs">当前文件有未保存的更改，确定要切换文件吗？</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel class="h-7 text-xs">取消</AlertDialogCancel>
-          <AlertDialogAction class="h-7 text-xs" @click="confirmSwitchFile">确定切换</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <!-- 未保存更改确认 -->
+    <BaihuDialog v-model:open="showUnsavedDialog" title="未保存的更改">
+      <div class="text-[15px] leading-relaxed text-muted-foreground">
+        当前文件有未保存的更改，确定要切换文件吗？未保存的内容将会丢失。
+      </div>
+      <template #footer>
+        <Button variant="ghost" @click="showUnsavedDialog = false">留在此页</Button>
+        <Button @click="confirmSwitchFile">确定切换</Button>
+      </template>
+    </BaihuDialog>
   </div>
 </template>

@@ -8,13 +8,7 @@ import TextOverflow from '@/components/TextOverflow.vue'
 import { api } from '@/api'
 import { toast } from 'vue-sonner'
 import { useSiteSettings } from '@/composables/useSiteSettings'
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription
-} from '@/components/ui/dialog'
+import BaihuDialog from '@/components/ui/BaihuDialog.vue'
 
 const { pageSize } = useSiteSettings()
 
@@ -214,36 +208,49 @@ onMounted(loadLogs)
         </div>
 
         <!-- IP 地理位置弹窗 -->
-        <Dialog v-model:open="ipDialogOpen">
-            <DialogContent class="max-w-[90vw] sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>IP 详情</DialogTitle>
-                    <DialogDescription>
-                        <code class="text-xs bg-muted px-2 py-0.5 rounded">{{ selectedIp }}</code>
-                    </DialogDescription>
-                </DialogHeader>
-                <div v-if="ipGeoLoading" class="flex items-center justify-center py-8">
-                    <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-                <div v-else-if="ipGeoInfo" class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-xs sm:text-sm">
-                    <div class="text-muted-foreground">国家</div>
-                    <div class="font-medium">{{ ipGeoInfo.country }} ({{ ipGeoInfo.country_code }})</div>
-                    <div class="text-muted-foreground">运营商</div>
-                    <div class="font-medium truncate">{{ ipGeoInfo.isp || '-' }}</div>
-                    <div class="text-muted-foreground">组织</div>
-                    <div class="font-medium truncate">{{ ipGeoInfo.organization || '-' }}</div>
-                    <div class="text-muted-foreground">ASN</div>
-                    <div class="font-medium truncate">{{ ipGeoInfo.asn }} - {{ ipGeoInfo.asn_organization || '-' }}
+        <BaihuDialog v-model:open="ipDialogOpen" title="IP 详情信息">
+            <template #description>
+                <code class="text-[10px] bg-muted px-2 py-0.5 rounded-md font-mono">{{ selectedIp }}</code>
+            </template>
+
+            <div v-if="ipGeoLoading" class="flex items-center justify-center py-12">
+                <Loader2 class="h-8 w-8 animate-spin text-primary/40" />
+            </div>
+            <div v-else-if="ipGeoInfo" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-3 rounded-xl bg-muted/20 border border-border/10 space-y-1">
+                        <p class="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">国家/地区</p>
+                        <p class="text-sm font-medium">{{ ipGeoInfo.country }} ({{ ipGeoInfo.country_code }})</p>
                     </div>
-                    <div class="text-muted-foreground">时区</div>
-                    <div class="font-medium">{{ ipGeoInfo.timezone || '-' }}</div>
-                    <div class="text-muted-foreground">坐标</div>
-                    <div class="font-medium">{{ ipGeoInfo.latitude }}, {{ ipGeoInfo.longitude }}</div>
+                    <div class="p-3 rounded-xl bg-muted/20 border border-border/10 space-y-1">
+                        <p class="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">时区</p>
+                        <p class="text-sm font-medium">{{ ipGeoInfo.timezone || '-' }}</p>
+                    </div>
                 </div>
-                <div v-else class="text-center text-muted-foreground py-4">
-                    无法获取 IP 信息
+
+                <div class="p-4 rounded-xl bg-muted/20 border border-border/10 space-y-3">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-muted-foreground">运营商</span>
+                        <span class="font-medium truncate ml-4">{{ ipGeoInfo.isp || '-' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-muted-foreground">组织</span>
+                        <span class="font-medium truncate ml-4">{{ ipGeoInfo.organization || '-' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-muted-foreground">ASN</span>
+                        <span class="font-medium truncate ml-4">{{ ipGeoInfo.asn }} - {{ ipGeoInfo.asn_organization || '-' }}</span>
+                    </div>
                 </div>
-            </DialogContent>
-        </Dialog>
+
+                <div class="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/10 text-xs">
+                    <span class="text-muted-foreground font-medium">地理坐标</span>
+                    <span class="font-mono text-primary/70">{{ ipGeoInfo.latitude }}, {{ ipGeoInfo.longitude }}</span>
+                </div>
+            </div>
+            <div v-else class="text-center text-muted-foreground py-8 italic text-sm">
+                无法获取 IP 信息，请稍后再试
+            </div>
+        </BaihuDialog>
     </div>
 </template>

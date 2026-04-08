@@ -13,16 +13,7 @@ import {
 } from 'lucide-vue-next'
 import { api, type TaskLog } from '@/api'
 import LogDetailCard from '@/components/LogDetailCard.vue'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import BaihuDialog from '@/components/ui/BaihuDialog.vue'
 import { toast } from 'vue-sonner'
 import { useSiteSettings } from '@/composables/useSiteSettings'
 import TextOverflow from '@/components/TextOverflow.vue'
@@ -506,42 +497,27 @@ watch(() => route.query, (newQuery) => {
       :content="decompressedOutput" />
 
     <!-- 清空日志确认弹窗 -->
-    <AlertDialog :open="showClearDialog" @update:open="showClearDialog = $event">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认清空日志?</AlertDialogTitle>
-          <AlertDialogDescription>
-            此操作将永久删除{{ filterTaskId ? '当前任务的' : '所有' }}任务历史记录，包括控制台输出，并且无法撤销。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction @click="handleClearLogs"
-            class="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:text-white dark:hover:bg-red-700">
-            清空
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <BaihuDialog v-model:open="showClearDialog" title="确认清空日志?">
+      <div class="text-sm text-muted-foreground leading-relaxed">
+        此操作将永久删除{{ filterTaskId ? '当前任务的' : '所有' }}任务历史记录，包括控制台输出，并且无法撤销。
+        <p class="mt-2 text-destructive font-medium">⚠️ 风险：该操作不可撤销。</p>
+      </div>
+      <template #footer>
+        <Button variant="ghost" @click="showClearDialog = false">取消</Button>
+        <Button variant="destructive" class="shadow-lg shadow-destructive/20" @click="handleClearLogs">立即清空</Button>
+      </template>
+    </BaihuDialog>
 
     <!-- 单条删除确认弹窗 -->
-    <AlertDialog :open="showDeleteDialog" @update:open="showDeleteDialog = $event">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认删除这条日志?</AlertDialogTitle>
-          <AlertDialogDescription>
-            此操作将永久删除该次运行记录和日志文件，且不可恢复。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction @click="handleDeleteLog"
-            class="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:text-white dark:hover:bg-red-700">
-            删除
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <BaihuDialog v-model:open="showDeleteDialog" title="确认删除这条日志?">
+      <div class="text-sm text-muted-foreground leading-relaxed">
+        此操作将永久删除该次运行记录和日志文件，且不可恢复。
+      </div>
+      <template #footer>
+        <Button variant="ghost" @click="showDeleteDialog = false">取消</Button>
+        <Button variant="destructive" class="shadow-lg shadow-destructive/20" @click="handleDeleteLog">确认删除</Button>
+      </template>
+    </BaihuDialog>
   </div>
 </template>
 
