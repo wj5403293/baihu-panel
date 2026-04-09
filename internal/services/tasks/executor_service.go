@@ -566,6 +566,11 @@ func (es *ExecutorService) Reload() {
 
 	// 从设置中读取新配置
 	es.initScheduler()
+
+	// 重要：更新计划任务管理器中的调度器引用，确保后续触发的任务进入新队列
+	if es.cronManager != nil {
+		es.cronManager.SetScheduler(es.scheduler)
+	}
 }
 
 // ExecuteTask executes a task by ID（同步执行，供 API 调用）

@@ -50,6 +50,13 @@ func (m *CronManager) SetLogger(logger SchedulerLogger) {
 	m.logger = logger
 }
 
+// SetScheduler 更新关联的调度器实例
+func (m *CronManager) SetScheduler(scheduler *Scheduler) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.scheduler = scheduler
+}
+
 // Start 启动调度器
 func (m *CronManager) Start() {
 	m.cron.Start()
