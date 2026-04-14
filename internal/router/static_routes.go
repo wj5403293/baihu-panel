@@ -44,10 +44,14 @@ func initStaticRoutes(root *gin.RouterGroup) {
 		contentType := mime.TypeByExtension(ext)
 		if contentType == "" {
 			switch ext {
-			case ".js": contentType = "application/javascript"
-			case ".css": contentType = "text/css"
-			case ".svg": contentType = "image/svg+xml"
-			default: contentType = "application/octet-stream"
+			case ".js":
+				contentType = "application/javascript"
+			case ".css":
+				contentType = "text/css"
+			case ".svg":
+				contentType = "image/svg+xml"
+			default:
+				contentType = "application/octet-stream"
 			}
 		}
 
@@ -55,7 +59,7 @@ func initStaticRoutes(root *gin.RouterGroup) {
 		if gzFile, err := staticFS.Open(gzPath); err == nil {
 			defer gzFile.Close()
 			ctx.Header("Content-Type", contentType)
-			
+
 			if isGzipSupported {
 				// 极致性能：流式透传压缩包 (RSS 占用极低)
 				ctx.Header("Content-Encoding", "gzip")
@@ -85,6 +89,13 @@ func initStaticRoutes(root *gin.RouterGroup) {
 
 	// logo.svg 等单文件处理
 	root.GET("/logo.svg", func(ctx *gin.Context) {
+		settings := services.NewSettingsService()
+		icon := settings.Get(constant.SectionSite, constant.KeyIcon)
+		if icon != "" {
+			ctx.Header("Cache-Control", "public, max-age=86400")
+			ctx.Data(http.StatusOK, "image/svg+xml", []byte(icon))
+			return
+		}
 		serveSingleFile(ctx, "logo.svg", "image/svg+xml", "public, max-age=86400")
 	})
 
@@ -111,7 +122,7 @@ func initPWARoutes(root *gin.RouterGroup) {
 		})
 	}
 
-	// 动态 manifest 处理 (支持由 Go 后端控制标题)
+	// 动态 manifest 处理 (支持由 Go 后端控制标题和图标)
 	root.GET("/manifest.webmanifest", handleManifest)
 
 	// 动态匹配 workbox-*.js (Vite PWA 生成的库文件)
@@ -120,6 +131,7 @@ func initPWARoutes(root *gin.RouterGroup) {
 		serveSingleFile(ctx, file, "application/javascript", "public, max-age=31536000, immutable")
 	})
 }
+
 
 func handleManifest(ctx *gin.Context) {
 	staticFS := static.GetFS()
@@ -150,6 +162,16 @@ func handleManifest(ctx *gin.Context) {
 		manifest["short_name"] = title
 	}
 
+	// 注入后端配置的图标 (首选 logo.svg)
+	manifest["icons"] = []map[string]interface{}{
+		{
+			"src":     "/logo.svg",
+			"sizes":   "any",
+			"type":    "image/svg+xml",
+			"purpose": "any maskable",
+		},
+	}
+
 	res, _ := json.Marshal(manifest)
 	ctx.Header("Cache-Control", "public, no-cache")
 	ctx.Data(200, "application/manifest+json", res)
@@ -162,7 +184,9 @@ func serveSingleFile(ctx *gin.Context, filename string, contentType string, cach
 		return
 	}
 
-	if cache != "" { ctx.Header("Cache-Control", cache) }
+	if cache != "" {
+		ctx.Header("Cache-Control", cache)
+	}
 	ctx.Header("Content-Type", contentType)
 
 	isGzipSupported := strings.Contains(ctx.GetHeader("Accept-Encoding"), "gzip")
@@ -221,7 +245,9 @@ func serveSPA(ctx *gin.Context, urlPrefix string, status int) {
 
 	html := string(data)
 	baseHref := urlPrefix + "/"
-	if urlPrefix == "" { baseHref = "/" }
+	if urlPrefix == "" {
+		baseHref = "/"
+	}
 	html = strings.Replace(html, "<head>", "<head>\n    <base href=\""+baseHref+"\">", 1)
 	configScript := `<script>window.__BASE_URL__ = "` + urlPrefix + `"; window.__API_VERSION__ = "/api/v1";</script>`
 	html = strings.Replace(html, "</head>", configScript+"</head>", 1)
