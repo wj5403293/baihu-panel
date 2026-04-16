@@ -63,19 +63,17 @@ func installForLanguage(lang, pkgPath, installBaseCmd string) {
 			// 使用 npm i -g 进行全局安装
 			subCmdArgs = []string{"npm", "i", "-g", pkgPath}
 		} else {
-			// python 使用 pip install -e
-			subCmdArgs = []string{"pip", "install", "-e", pkgPath}
+			// python 改为标准安装 (非 -e)，避免 Docker 内软链接可能导致的路径丢失问题
+			subCmdArgs = []string{"pip", "install", "--force-reinstall", pkgPath}
 		}
 
-		// 构建参数列表: [mise, exec, lang@v, --, npm, i, -g, path]
+		// 构建参数列表: [mise, exec, lang@v, --, cmd...]
 		fullArgs := utils.BuildMiseCommandArgsSimple(subCmdArgs, lang, v)
 
 		var cmd *exec.Cmd
 		if runtime.GOOS == "windows" {
-			// Windows 下仍建议通过 cmd /c 调用
 			cmd = exec.Command("cmd", append([]string{"/c"}, fullArgs...)...)
 		} else {
-			// Linux 系统直接执行参数切片，更稳健
 			cmd = exec.Command(fullArgs[0], fullArgs[1:]...)
 		}
 
@@ -84,9 +82,6 @@ func installForLanguage(lang, pkgPath, installBaseCmd string) {
 			logger.Errorf("[Builtin] 为 %s@%s 安装失败: %v\n输出: %s", lang, v, err, string(out))
 		} else {
 			logger.Infof("[Builtin] 为 %s@%s 安装成功", lang, v)
-			// 安装成功后尝试执行 reshim，确保命令生效
-			reshimCmd := exec.Command("mise", "reshim", lang)
-			reshimCmd.Run()
 		}
 	}
 }

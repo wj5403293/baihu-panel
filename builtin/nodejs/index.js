@@ -25,7 +25,7 @@ function notify(title, text, channelId) {
 
     if (!notifyUrl || !TOKEN || !cid) return;
 
-    try {
+
         const parsedUrl = new URL(notifyUrl);
         const protocol = parsedUrl.protocol === 'https:' ? https : http;
         
@@ -51,7 +51,7 @@ function notify(title, text, channelId) {
         req.on('error', (e) => {});
         req.write(data);
         req.end();
-    } catch (e) {}
+    
 }
 
 module.exports = { notify };
