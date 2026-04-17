@@ -134,7 +134,12 @@ onMounted(() => {
         <nav class="flex-1 px-3 py-6 space-y-1 flex flex-col items-center overflow-y-auto">
           <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" custom v-slot="{ navigate }">
             <Button variant="ghost"
-              :class="['justify-center gap-3 h-9 px-3 w-full max-w-[140px]', isItemActive(item) && 'bg-zinc-100 dark:bg-accent text-foreground dark:text-accent-foreground font-semibold shadow-sm']"
+              :class="[
+                'justify-center gap-3 h-10 px-3 w-full max-w-[140px] transition-all duration-200',
+                isItemActive(item) 
+                  ? 'bg-secondary text-foreground font-bold' 
+                  : 'text-foreground hover:bg-secondary/50'
+              ]"
               @click="handleNavClick(navigate)">
               <component :is="item.icon" class="h-4 w-4" />
               {{ item.label }}
@@ -160,7 +165,7 @@ onMounted(() => {
               <Menu class="h-5 w-5 text-muted-foreground" />
             </Button>
             <div class="flex flex-col sm:flex-row sm:items-baseline sm:gap-2 truncate">
-              <span class="text-sm text-muted-foreground truncate font-medium poem-sentence" :title="sentence">
+              <span class="text-sm text-muted-foreground truncate font-normal poem-sentence" :title="sentence">
                 <span class="hidden sm:inline">{{ sentence }}</span>
                 <span class="sm:hidden">{{ sentenceContent }}</span>
               </span>
@@ -208,8 +213,7 @@ onMounted(() => {
 
 @media (max-width: 639px) {
   .poem-sentence {
-    font-weight: 400 !important;
-    opacity: 0.7 !important;
+    /* 与卡片标题保持一致，使用标准 font-medium 并取消淡化 */
     letter-spacing: 0.01em;
   }
 }

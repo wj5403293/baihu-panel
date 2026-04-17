@@ -32,7 +32,7 @@ const { theme, setTheme } = useTheme()
       </DropdownMenuItem>
       <DropdownMenuItem @click="setTheme('system')" class="gap-2">
         <Monitor class="h-4 w-4" />
-        <span>跟随系统</span>
+        <span>系统</span>
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
