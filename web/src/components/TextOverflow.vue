@@ -22,16 +22,18 @@ function handleClick() {
 </script>
 
 <template>
-  <span v-bind="$attrs" class="truncate block cursor-pointer hover:text-primary transition-colors" :title="text || '-'"
+  <span v-bind="$attrs" class="truncate block cursor-pointer hover:text-primary transition-colors font-mono" :title="text || '-'"
     @click.stop="handleClick">
     {{ text || '-' }}
   </span>
 
   <BaihuDialog v-model:open="showDialog" :title="title">
     <div class="max-h-[60vh] overflow-y-auto custom-scrollbar">
-      <p class="text-[15px] leading-relaxed text-foreground/80 break-all whitespace-pre-wrap font-sans">
-        {{ text }}
-      </p>
+      <div class="p-4 bg-muted/30 rounded-xl border border-border/50">
+        <p class="text-[13.5px] leading-relaxed text-foreground/90 break-all whitespace-pre-wrap font-mono">
+          {{ text }}
+        </p>
+      </div>
     </div>
   </BaihuDialog>
 </template>

@@ -106,16 +106,15 @@ onMounted(() => {
 
 <template>
   <!-- Root Container: Handles the background and centering on 2K+ screens -->
-  <div class="h-screen w-full bg-slate-50/50 dark:bg-zinc-950 flex items-center justify-center 2xl:p-8 3xl:p-12 transition-all duration-500 overflow-hidden">
+  <div class="h-screen w-full bg-slate-50/50 dark:bg-zinc-950 flex items-center justify-center 3xl:p-8 transition-all duration-500 overflow-hidden">
     
     <!-- Application Card: The main floating surface -->
     <div
       class="flex h-full w-full bg-background relative transition-all duration-500 overflow-hidden
-             2xl:max-w-[1800px] 2xl:max-h-[92vh] 2xl:rounded-[2.5rem] 
-             2xl:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.05)]
-             2xl:ring-1 2xl:ring-slate-900/5 dark:2xl:ring-white/10
-             2xl:border 2xl:border-slate-200/60 dark:2xl:border-white/5
-             3xl:max-w-[2200px] 3xl:max-h-[90vh]">
+             3xl:max-w-[2000px] 3xl:max-h-[92vh] 3xl:rounded-[2.5rem] 
+             3xl:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.05)]
+             3xl:ring-1 3xl:ring-slate-900/5 dark:3xl:ring-white/10
+             3xl:border 3xl:border-slate-200/60 dark:3xl:border-white/5">
       
       <!-- Mobile Menu Overlay -->
       <div v-if="mobileMenuOpen" class="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40 lg:hidden" @click="mobileMenuOpen = false" />
@@ -146,9 +145,9 @@ onMounted(() => {
             </Button>
           </RouterLink>
         </nav>
-        <div class="px-3 py-4 2xl:pb-12 border-t border-slate-200/60 dark:border-white/10 flex justify-center">
+        <div class="px-3 py-4 3xl:pb-12 border-t border-slate-200/60 dark:border-white/10 flex justify-center">
           <Button variant="ghost" 
-            class="justify-start 2xl:justify-center gap-3 h-9 px-3 w-content 2xl:w-full 2xl:max-w-[140px] text-muted-foreground hover:text-foreground transition-all whitespace-nowrap"
+            class="justify-start 3xl:justify-center gap-3 h-9 px-3 w-content 3xl:w-full 3xl:max-w-[140px] text-muted-foreground hover:text-foreground transition-all whitespace-nowrap"
             @click="logout">
             <LogOut class="h-4 w-4 shrink-0" />
             <span class="truncate">退出登录</span>
