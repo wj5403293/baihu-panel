@@ -426,12 +426,12 @@ watch(() => route.query.agent_id, (newVal: any) => {
           <span class="w-8 shrink-0 text-center">类型</span>
           <span class="w-56 shrink-0">名称</span>
           <span class="w-32 shrink-0">执行位置</span>
-          <span class="w-8 shrink-0 text-center">状态</span>
           <span class="flex-1 min-w-0 flex items-center gap-1.5 line-clamp-1">
             <Terminal class="h-3.5 w-3.5 opacity-50" />命令/地址
           </span>
           <span class="w-28 shrink-0">定时规则</span>
           <span class="w-40 shrink-0">执行时间</span>
+          <span class="w-8 shrink-0 text-center">状态</span>
           <span class="w-36 shrink-0 text-center">操作</span>
         </div>
         <!-- 列表 -->
@@ -458,14 +458,6 @@ watch(() => route.query.agent_id, (newVal: any) => {
               </template>
               <span class="truncate">{{ getExecutorName(task) }}</span>
             </span>
-            <span class="w-8 flex justify-center shrink-0 cursor-pointer group" @click="toggleTask(task, !task.enabled)">
-              <div v-if="task.enabled" class="h-6 w-6 rounded-md bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20">
-                <Zap class="h-3.5 w-3.5 text-green-500 fill-green-500" />
-              </div>
-              <div v-else class="h-6 w-6 rounded-md bg-muted flex items-center justify-center group-hover:bg-muted/80">
-                <ZapOff class="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
-            </span>
             <code class="flex-1 min-w-0 text-muted-foreground truncate text-xs bg-muted/40 px-2 py-1 rounded">
               <TextOverflow :text="task.command" :title="task.type === TASK_TYPE.REPO ? '同步地址' : '执行命令'" class="truncate" />
             </code>
@@ -477,6 +469,14 @@ watch(() => route.query.agent_id, (newVal: any) => {
               <span class="truncate">上: {{ task.last_run || '-' }}</span>
               <span class="truncate">下: {{ task.next_run || '-' }}</span>
             </div>
+            <span class="w-8 flex justify-center shrink-0 cursor-pointer group" @click="toggleTask(task, !task.enabled)">
+              <div v-if="task.enabled" class="h-6 w-6 rounded-md bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20">
+                <Zap class="h-3.5 w-3.5 text-green-500 fill-green-500" />
+              </div>
+              <div v-else class="h-6 w-6 rounded-md bg-muted flex items-center justify-center group-hover:bg-muted/80">
+                <ZapOff class="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+            </span>
             <span class="w-36 shrink-0 flex justify-center gap-1">
               <Button variant="ghost" size="icon" class="h-7 w-7" @click="runTask(task.id)" :disabled="executingTaskId === task.id">
                 <Loader2 v-if="executingTaskId === task.id" class="h-3.5 w-3.5 animate-spin" />
