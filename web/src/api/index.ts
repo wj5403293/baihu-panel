@@ -81,7 +81,8 @@ export const api = {
       return request<{ count: number }>(`/tasks/batch-by-query?${query.toString()}`, { method: 'DELETE' })
     },
     execute: (id: string) => request<ExecutionResult>(`/execute/task/${id}`, { method: 'POST' }),
-    stop: (logID: string) => request(`/tasks/stop/${logID}`, { method: 'POST' })
+    stop: (logID: string) => request(`/tasks/stop/${logID}`, { method: 'POST' }),
+    tags: () => request<string[]>('/tasks/tags')
   },
   scripts: {
     list: () => request<Script[]>('/scripts'),

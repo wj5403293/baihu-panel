@@ -5,9 +5,11 @@ import (
 	"github.com/engigu/baihu-panel/internal/database"
 	"github.com/engigu/baihu-panel/internal/models"
 	"github.com/engigu/baihu-panel/internal/utils"
+	"strings"
 )
 
-type TaskService struct{}
+type TaskService struct {
+}
 
 func NewTaskService() *TaskService {
 	return &TaskService{}
@@ -56,6 +58,8 @@ func (ts *TaskService) CreateTask(name, command, schedule string, timeout int, w
 		task.NextRun = nil
 	}
 	database.DB.Select("*").Create(task)
+
+
 	return task
 }
 
@@ -74,10 +78,25 @@ func (ts *TaskService) GetTasksWithPagination(page, pageSize int, name string, a
 	if name != "" {
 		query = query.Where("name LIKE ? OR remark LIKE ?", "%"+name+"%", "%"+name+"%")
 	}
+	
+	// 标签筛选 (并集)
 	if tags != "" {
-		query = query.Where("tags LIKE ?", "%"+tags+"%")
+		tagList := strings.Split(tags, ",")
+		var orConditions []string
+		var orValues []interface{}
+		for _, tag := range tagList {
+			tag = strings.TrimSpace(tag)
+			if tag != "" {
+				orConditions = append(orConditions, "tags LIKE ?")
+				orValues = append(orValues, "%"+tag+"%")
+			}
+		}
+		if len(orConditions) > 0 {
+			query = query.Where(strings.Join(orConditions, " OR "), orValues...)
+		}
 	}
-	if taskType != "" {
+
+	if taskType != "" && taskType != "all" {
 		query = query.Where("type = ?", taskType)
 	}
 	if agentID != nil {
@@ -136,6 +155,7 @@ func (ts *TaskService) UpdateTask(id string, name, command, schedule string, tim
 		"RetryCount", "RetryInterval", "RandomRange", "Type",
 		"TriggerType", "Config", "SourceID",
 	).Updates(&task)
+
 	return &task
 }
 
@@ -153,4 +173,27 @@ func (ts *TaskService) BatchDeleteTasks(ids []string) int64 {
 	
 	result := database.DB.Where("id IN ?", ids).Delete(&models.Task{})
 	return result.RowsAffected
+}
+
+// GetAllTags 获取所有任务标签
+func (ts *TaskService) GetAllTags() ([]string, error) {
+	var tasks []models.Task
+	database.DB.Select("tags").Where("tags != ?", "").Find(&tasks)
+
+	tagMap := make(map[string]bool)
+	for _, task := range tasks {
+		tags := strings.Split(task.Tags, ",")
+		for _, tag := range tags {
+			tag = strings.TrimSpace(tag)
+			if tag != "" {
+				tagMap[tag] = true
+			}
+		}
+	}
+
+	result := make([]string, 0, len(tagMap))
+	for tag := range tagMap {
+		result = append(result, tag)
+	}
+	return result, nil
 }

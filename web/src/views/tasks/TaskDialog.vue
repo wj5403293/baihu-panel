@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import DirTreeSelect from '@/components/DirTreeSelect.vue'
 import { Plus, ChevronDown, X, Search, Check, ChevronsUpDown, AlertCircle, Terminal, Zap, Loader2, Lock, Variable } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
+import TagInput from '@/components/TagInput.vue'
 import { cn } from '@/lib/utils'
 import { api, type Task, type EnvVar, type Agent, type MiseLanguage } from '@/api'
 import { PATHS, TRIGGER_TYPE } from '@/constants'
@@ -77,8 +78,8 @@ function onAllEnvsChange(val: boolean) {
   allEnvsEnabled.value = val
 }
 
-function addTag() {
-  const val = tagInput.value.trim()
+function addTag(passedTag?: string) {
+  const val = (passedTag || tagInput.value).trim()
   if (!val) return
   const currentTags = form.value.tags ? form.value.tags.split(',').filter(Boolean) : []
   if (!currentTags.includes(val)) {
@@ -475,17 +476,18 @@ async function save() {
                 <div class="grid grid-cols-1 sm:grid-cols-4 items-start gap-3">
                   <Label class="sm:text-right text-xs text-foreground/70 uppercase tracking-wider font-bold pt-2.5">任务标签</Label>
                   <div class="sm:col-span-3 space-y-2">
-                    <div class="flex gap-2">
-                      <div class="relative flex-1">
-                        <Input v-model="tagInput" placeholder="输入标签按回车..." :class="cn('h-9 bg-muted/20 border-muted-foreground/15 transition-all pr-12', tagInput ? 'text-sm font-medium' : 'text-[11px] font-normal')" @keydown.enter.prevent="addTag" />
-                        <Button type="button" variant="ghost" size="sm" class="absolute right-1 top-1 h-7 px-2 text-xs hover:bg-primary/10 hover:text-primary transition-colors" @click.prevent="addTag">添加</Button>
-                      </div>
-                    </div>
-                    <div v-if="form.tags" class="flex flex-wrap gap-1.5 pt-1">
-                      <span v-for="tag in form.tags.split(',').filter(Boolean)" :key="tag" class="flex items-center gap-1.5 bg-primary/5 text-primary px-2.5 py-1 rounded-full text-[11px] font-medium border border-primary/10 group transition-all hover:bg-primary/10">
+                    <div class="flex flex-wrap gap-1.5 p-2 min-h-[42px] bg-muted/20 border border-muted-foreground/15 rounded-md focus-within:border-primary/30 transition-colors">
+                      <span v-for="tag in (form.tags ? form.tags.split(',').filter(Boolean) : [])" :key="tag" 
+                        class="flex items-center gap-1.5 bg-primary/5 text-primary px-2.5 py-1 rounded-full text-[11px] font-medium border border-primary/10 group transition-all hover:bg-primary/10">
                         {{ tag }}
                         <button type="button" class="text-primary/40 hover:text-destructive transition-colors shrink-0" @click.prevent="removeTag(tag)"><X class="h-3 w-3" /></button>
                       </span>
+                      <div class="flex-1 min-w-[100px]">
+                        <TagInput v-model="tagInput" placeholder="输入并回车添加标签..." 
+                          clearOnSelect
+                          class="h-6 border-none bg-transparent shadow-none focus-visible:ring-0 px-0 text-xs"
+                          @enter="addTag" />
+                      </div>
                     </div>
                   </div>
                 </div>

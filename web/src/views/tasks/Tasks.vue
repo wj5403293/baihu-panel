@@ -7,8 +7,10 @@ import Pagination from '@/components/Pagination.vue'
 import TaskDialog from './TaskDialog.vue'
 import RepoDialog from './RepoDialog.vue'
 import LogViewer from '@/views/history/LogViewer.vue'
-import { Plus, Play, Pencil, Trash2, Search, ScrollText, GitBranch, Terminal, Server, Monitor, X, Loader2, RefreshCw, Wifi, WifiOff, Zap, ZapOff, Copy, Tag } from 'lucide-vue-next'
+import { Plus, Play, Pencil, Trash2, Search, ScrollText, GitBranch, Terminal, Server, Monitor, X, Loader2, RefreshCw, Wifi, WifiOff, Zap, ZapOff, Copy, Tag, ChevronDown } from 'lucide-vue-next'
+import TagInput from '@/components/TagInput.vue'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api, type Agent, type Task, type TaskLog } from '@/api'
 import { toast } from 'vue-sonner'
@@ -314,6 +316,76 @@ async function viewLogs(taskId: string) {
   }
 }
 
+// 视图管理
+const taskViews = ref<any[]>([])
+const newViewName = ref('')
+const isSavingView = ref(false)
+
+async function loadViewsFromSettings() {
+  try {
+    const res = await api.settings.getSection('task_qviews')
+    const val = res['task_views']
+    if (val) {
+      taskViews.value = JSON.parse(val)
+    }
+  } catch (e) {
+    console.error('Failed to load views', e)
+  }
+}
+
+async function saveView() {
+  if (!newViewName.value.trim()) {
+    toast.error('请输入视图名称')
+    return
+  }
+  
+  const newView = {
+    name: newViewName.value.trim(),
+    query: {
+      name: filterName.value,
+      tags: filterTags.value,
+      agent_id: filterAgentId.value,
+      type: filterType.value
+    }
+  }
+  
+  const updatedViews = [...taskViews.value, newView]
+  isSavingView.value = true
+  try {
+    await api.settings.setSection('task_qviews', {
+      'task_views': JSON.stringify(updatedViews)
+    })
+    taskViews.value = updatedViews
+    newViewName.value = ''
+    toast.success('视图已保存')
+  } catch (e) {
+    toast.error('保存失败')
+  } finally {
+    isSavingView.value = false
+  }
+}
+
+function applyView(view: any) {
+  filterName.value = view.query.name || ''
+  filterTags.value = view.query.tags || ''
+  filterAgentId.value = view.query.agent_id || null
+  filterType.value = view.query.type || TASK_TYPE.NORMAL
+  handleSearch()
+}
+
+async function deleteView(index: number) {
+  const updatedViews = taskViews.value.filter((_, i) => i !== index)
+  try {
+    await api.settings.setSection('task_qviews', {
+      'task_views': JSON.stringify(updatedViews)
+    })
+    taskViews.value = updatedViews
+    toast.success('视图已删除')
+  } catch (e) {
+    toast.error('删除失败')
+  }
+}
+
 function getTaskTypeTitle(type: string) {
   return type === TASK_TYPE.REPO ? '仓库同步' : '普通任务'
 }
@@ -329,6 +401,7 @@ onMounted(async () => {
   }
 
   loadTasks()
+  loadViewsFromSettings()
 })
 
 // 监听路由参数变化
@@ -343,23 +416,65 @@ watch(() => route.query.agent_id, (newVal: any) => {
   <div class="space-y-6">
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div class="flex flex-col shrink-0">
-        <h2 class="text-xl sm:text-2xl font-bold tracking-tight">定时任务</h2>
-        <p class="text-muted-foreground text-sm">管理和调度自动化执行任务</p>
+        <Popover>
+          <PopoverTrigger as-child>
+            <div class="flex items-center gap-2 cursor-pointer group w-fit">
+              <h2 class="text-xl sm:text-2xl font-bold tracking-tight">{{ filterType === TASK_TYPE.REPO ? '仓库同步' : '定时任务' }}</h2>
+              <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 group-hover:bg-primary/10 transition-colors border border-transparent group-hover:border-primary/20">
+                <span class="text-[10px] font-bold text-muted-foreground group-hover:text-primary uppercase tracking-wider">视图</span>
+                <ChevronDown class="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent class="w-64 p-3 shadow-xl border-muted-foreground/10" align="start" :side-offset="8">
+            <div class="space-y-4">
+              <div>
+                <div class="flex items-center justify-between mb-2 px-1">
+                  <h4 class="text-sm font-semibold">我的视图</h4>
+                </div>
+                <div v-if="taskViews.length === 0" class="text-xs text-muted-foreground px-1 py-4 text-center border-2 border-dashed rounded-md bg-muted/20">
+                  暂无保存的视图
+                </div>
+                <div class="flex flex-wrap gap-2 pr-1 max-h-[200px] overflow-y-auto custom-scrollbar">
+                  <div v-for="(view, index) in taskViews" :key="index" 
+                    class="flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 bg-primary/5 text-primary rounded-full text-[12px] font-medium border border-primary/10 hover:bg-primary/10 transition-all cursor-pointer group"
+                    @click="applyView(view)">
+                    <span class="max-w-[120px] truncate">{{ view.name }}</span>
+                    <button type="button" class="p-0.5 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      @click.stop="deleteView(index)">
+                      <X class="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="pt-3 border-t space-y-2.5">
+                <h4 class="text-xs font-semibold px-1 text-muted-foreground uppercase tracking-wider">保存当前过滤为新视图</h4>
+                <div class="flex gap-2">
+                  <Input v-model="newViewName" placeholder="视图名称..." class="h-9 text-xs bg-muted/30 focus:bg-background" @keydown.enter="saveView" />
+                  <Button size="sm" class="h-9 px-3" @click="saveView" :disabled="isSavingView">
+                    <Plus v-if="!isSavingView" class="h-4 w-4" />
+                    <Loader2 v-else class="h-4 w-4 animate-spin" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+        <p class="text-muted-foreground text-xs mt-0.5 ml-0.5">管理和调度自动化执行任务</p>
       </div>
 
       <div class="flex flex-row items-center flex-wrap gap-2 w-full lg:w-auto lg:ml-auto lg:justify-end">
         <!-- 搜索与标签 -->
-        <div class="flex flex-row items-center gap-2 flex-1 sm:flex-1 lg:flex-none lg:w-auto text-sm">
-          <div class="relative flex-1 sm:flex-1 lg:max-w-[240px] group">
+        <div class="flex flex-row items-center gap-2 w-full sm:flex-1 lg:flex-none lg:w-auto text-sm">
+          <div class="relative flex-1 lg:flex-none lg:w-[240px] group">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input v-model="filterName" placeholder="搜索任务..." class="h-9 pl-9 w-full bg-muted/20 border-muted-foreground/10 focus:bg-background text-sm"
               @input="handleSearch" />
           </div>
-          <div class="relative flex-1 sm:flex-1 lg:max-w-[180px] group">
-            <Tag class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <Input v-model="filterTags" placeholder="搜索标签..." class="h-9 pl-9 w-full bg-muted/20 border-muted-foreground/10 focus:bg-background text-sm"
-              @input="handleSearch" />
-          </div>
+          <TagInput v-model="filterTags" placeholder="搜索标签..." :icon="Tag" multiple
+            class="h-9 flex-1 lg:flex-none lg:w-[180px] bg-muted/20 border-muted-foreground/10 focus:bg-background text-sm"
+            @enter="handleSearch" @update:modelValue="handleSearch" />
         </div>
 
         <div class="flex items-center gap-2 w-full sm:w-auto sm:justify-end">
