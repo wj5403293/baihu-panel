@@ -255,7 +255,7 @@ function onDialogClose(open: boolean) {
                     ]">
                         <div class="flex items-center gap-1 uppercase tracking-tighter">
                             <component :is="getLevelIcon(selectedLog.level)" class="h-3 w-3" />
-                            <span>{{ selectedLog.level }}</span>
+                            <span>{{ selectedLog.level === LOG_LEVEL.INFO ? '信息' : selectedLog.level === LOG_LEVEL.WARNING ? '警告' : '错误' }}</span>
                         </div>
                     </Badge>
                     <span class="text-[10px] text-muted-foreground font-mono">{{ selectedLog ? formatDate(selectedLog.created_at) : '-' }}</span>

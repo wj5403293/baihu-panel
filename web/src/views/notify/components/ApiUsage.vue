@@ -340,8 +340,8 @@ const currentExample = computed(() => {
             
             <div class="mb-4 border-b border-zinc-200 dark:border-zinc-800/50 pb-3">
               <div class="flex items-center gap-2 mb-1.5">
-                <Badge class="bg-primary text-primary-foreground border-none py-0 px-2 text-[10px]">RECOMMENDED</Badge>
-                <span class="text-sm font-bold text-zinc-900 dark:text-zinc-100">内建助手库 (Built-in)</span>
+                <Badge class="bg-primary text-primary-foreground border-none py-0 px-2 text-[10px]">推荐</Badge>
+                <span class="text-sm font-bold text-zinc-900 dark:text-zinc-100">内建助手库 (内置)</span>
               </div>
               <p class="text-[12px] text-zinc-500 leading-normal">
                 白虎面板内置了跨语言的脚本推送工具。通过环境层预装该库，您的脚本可以实现完全的“零配置”调用。

@@ -327,7 +327,7 @@ onBeforeUnmount(() => {
             <div class="flex items-center gap-2 flex-1 min-w-0 pr-2">
               <span class="text-[10px] text-muted-foreground shrink-0 tabular-nums opacity-60">#{{ total - (currentPage - 1) * pageSize - index }}</span>
               <code class="font-bold text-xs bg-muted/60 px-2 py-0.5 rounded truncate max-w-[120px] sm:max-w-none text-zinc-700 dark:text-zinc-200">{{ env.name }}</code>
-              <Badge v-if="isNotifyEnv(env.name)" variant="secondary" class="shrink-0 text-[8px] h-3.5 px-1 rounded-sm uppercase font-bold tracking-tighter leading-none">Built-in</Badge>
+              <Badge v-if="isNotifyEnv(env.name)" variant="secondary" class="shrink-0 text-[8px] h-3.5 px-1 rounded-sm uppercase font-bold tracking-tighter leading-none">内置</Badge>
             </div>
             <span class="cursor-pointer group shrink-0"
               @click="toggleEnabled(env)" :title="env.enabled ? '已启用' : '已禁用'">
@@ -383,7 +383,7 @@ onBeforeUnmount(() => {
           </div>
           <div class="w-32 sm:w-48 shrink-0 flex items-center gap-1 overflow-hidden pr-2">
             <code class="font-medium truncate text-[11px] bg-muted/50 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-300">{{ env.name }}</code>
-            <Badge v-if="isNotifyEnv(env.name)" variant="secondary" class="text-[8px] h-3.5 px-1 rounded-sm uppercase font-bold tracking-tighter shrink-0 border-zinc-200/50 dark:border-zinc-700/50 leading-none">Built-in</Badge>
+            <Badge v-if="isNotifyEnv(env.name)" variant="secondary" class="text-[8px] h-3.5 px-1 rounded-sm uppercase font-bold tracking-tighter shrink-0 border-zinc-200/50 dark:border-zinc-700/50 leading-none">内置</Badge>
           </div>
           <span class="flex-1 min-w-0 text-muted-foreground truncate text-xs px-1">
             <TextOverflow :text="showValues[env.id] ? env.value : maskValue(env.value)" title="查看值" />
