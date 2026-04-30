@@ -576,7 +576,6 @@ watch(() => route.query.agent_id, (newVal: any) => {
               <div class="relative">
                 <GitBranch v-if="task.type === TASK_TYPE.REPO" class="h-4 w-4 text-primary" />
                 <Terminal v-else class="h-4 w-4 text-primary" />
-                <div v-if="task.pin_type === 'top'" class="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full border-2 border-background" />
               </div>
             </span>
             <div class="w-56 shrink-0 flex flex-col justify-center gap-0.5 overflow-hidden">
@@ -672,7 +671,6 @@ watch(() => route.query.agent_id, (newVal: any) => {
                 <div class="relative">
                   <GitBranch v-if="task.type === TASK_TYPE.REPO" class="h-3.5 w-3.5 text-primary" />
                   <Terminal v-else class="h-3.5 w-3.5 text-primary" />
-                  <div v-if="task.pin_type === 'top'" class="absolute -top-1 -right-1 h-1.5 w-1.5 bg-primary rounded-full border border-background" />
                 </div>
               </span>
               <div class="flex flex-col min-w-0">
@@ -739,7 +737,6 @@ watch(() => route.query.agent_id, (newVal: any) => {
                 <div class="relative">
                   <GitBranch v-if="task.type === TASK_TYPE.REPO" class="h-3.5 w-3.5 text-primary" />
                   <Terminal v-else class="h-3.5 w-3.5 text-primary" />
-                  <div v-if="task.pin_type === 'top'" class="absolute -top-1 -right-1 h-1.5 w-1.5 bg-primary rounded-full border border-background" />
                 </div>
               </span>
               <div class="flex items-center gap-1.5 min-w-0 flex-1">

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   RefreshCw, Trash2, Pencil, Copy, Server, Search, Download, RotateCw,
   Plus, Ticket, ListTodo, Eye, Wifi, WifiOff,
-  Zap, ZapOff, Check, X, MoreHorizontal, Loader2, Monitor, Terminal, GitBranch
+  Zap, ZapOff, Check, X, MoreHorizontal
 } from 'lucide-vue-next'
 import {
   DropdownMenu,
@@ -22,7 +22,6 @@ import { api, type Agent, type AgentToken } from '@/api'
 import { toast } from 'vue-sonner'
 import { useRouter } from 'vue-router'
 import { AGENT_STATUS } from '@/constants'
-import TextOverflow from '@/components/TextOverflow.vue'
 
 const router = useRouter()
 
