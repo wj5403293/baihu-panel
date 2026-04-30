@@ -660,7 +660,7 @@ host = localhost
 port = 3306
 user = root
 password = 
-dbname = ql_panel
+dbname = bh_panel
 table_prefix = baihu_
 ```
 
@@ -678,7 +678,7 @@ table_prefix = baihu_
 | `BH_DB_PORT` | database.port | 数据库端口 | 3306 |
 | `BH_DB_USER` | database.user | 数据库用户 | root |
 | `BH_DB_PASSWORD` | database.password | 数据库密码 | - |
-| `BH_DB_NAME` | database.dbname | 数据库名称 | ql_panel |
+| `BH_DB_NAME` | database.dbname | 数据库名称 | bh_panel |
 | `BH_DB_PATH` | database.path | SQLite 文件路径 | ./data/baihu.db |
 | `BH_DB_TABLE_PREFIX` | database.table_prefix | 表前缀 | baihu_ |
 | `BAIHU_SECRET_KEY` | - | 系统加密秘钥，用于机密功能（**注：仅支持环境变量设置，不支持配置文件**） | - |
